@@ -49,10 +49,10 @@ int main()
                             const int yOther = y + dy * h;
 
                             if ( !( (x == 0 && y == 0)
-                                 || x + w >= SAMPLE_SIZE
-                                 || y + h >= SAMPLE_SIZE
-                                 || xOther + w >= SAMPLE_SIZE
-                                 || yOther + y >= SAMPLE_SIZE) )
+                                  || x + w >= SAMPLE_SIZE
+                                  || y + h >= SAMPLE_SIZE
+                                  || xOther + w >= SAMPLE_SIZE
+                                  || yOther + y >= SAMPLE_SIZE) )
                             {
                                 //create a haar wavelet
                                 std::vector<cv::Rect> rects(2);
