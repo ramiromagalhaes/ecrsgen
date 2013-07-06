@@ -38,7 +38,15 @@ public:
     void srfs(std::vector<double> &srfsVector) const;
 
 private:
+
+    /**
+     * Constructs an "empty" instance of this object.
+     */
     HaarWavelet();
+
+    /**
+     * Calculates the sum of pixels inside a rectangular area of the image.
+     */
     inline double singleRectangleValue(const cv::Rect &rect, const cv::Point &position, const cv::Mat &s) const;
 
     /**
