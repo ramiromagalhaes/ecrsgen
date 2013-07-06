@@ -30,7 +30,8 @@ int HaarWavelet::dimensions() const
 
 bool HaarWavelet::setIntegralImages(cv::Mat * const sum_, cv::Mat * const squareSum_)
 {
-    if ( (!sum_ && !squareSum_)
+    if ( !sum_
+            || !squareSum_
             || sum_->cols < detectorSize->width
             || sum_->rows < detectorSize->height)
     {
@@ -81,11 +82,13 @@ inline double HaarWavelet::singleRectangleValue(const cv::Rect &rect, const cv::
 {
     double rectVal = 0;
 
+    //As per Lienhart, Maydt, 2002, section 2.2
     const int x = position.x + rect.x;
     const int y = position.y + rect.y;
     const int x_w = x + rect.width;
     const int y_h = y + rect.height;
 
+    //TODO is there a faster and more flexible way to implement this and avoid invoking s.at() functions?
     rectVal += s.at<int>(y, x);     // (x, y)
     rectVal -= s.at<int>(y, x_w);   // (x + w, y)
     rectVal -= s.at<int>(y_h, x);   // (x, y + h)
