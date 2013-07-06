@@ -35,41 +35,36 @@ int main()
     weights[1] = -1;
 
     //First, let's produce simple haar wavelets with 2 features
-    for(int x = 0; x < SAMPLE_SIZE - MIN_RECT_SIZE; x++)
+    for(int x = 0; x < SAMPLE_SIZE - MIN_RECT_SIZE; x++) //x position of the first rectangle
     {
-        for(int y = 0; y < SAMPLE_SIZE - MIN_RECT_SIZE; y++)
+        for(int y = 0; y < SAMPLE_SIZE - MIN_RECT_SIZE; y++) //y position of the first rectangle
         {
-            for(int w = 3; w <= SAMPLE_SIZE / MIN_RECT_SIZE; w++)
+            for(int w = 3; w <= SAMPLE_SIZE / MIN_RECT_SIZE; w++) //width of both rectangles
             {
-                for(int h = 3; h <= SAMPLE_SIZE / MIN_RECT_SIZE; h++)
+                for(int h = 3; h <= SAMPLE_SIZE / MIN_RECT_SIZE; h++) //height of both rectangles
                 {
-                    //case 1: side by side
-                    const int waveletWidth = 2 * w;
-                    if ( !(x + waveletWidth > SAMPLE_SIZE || y + h > SAMPLE_SIZE) )
-                    {
-                        //create a haar wavelet
-                        std::vector<cv::Rect> rects(2);
-                        rects[0] = cv::Rect(    x, y, w, h);
-                        rects[1] = cv::Rect(x + w, y, w, h);
+                    for(int dx = 1; dx <= SAMPLE_SIZE/MIN_RECT_SIZE; dx++) //dx = horizontal displacement multiplier of the second rectangle.
+                    {                                                      //If bigger than 1 the rectangles will be disjoint. See Pavani's restriction #4.
+                        for(int dy = 1; dy <= SAMPLE_SIZE/MIN_RECT_SIZE; dy++) //dy is similar to dx but in the vertical direction
+                        {
+                            const int xOther = x + dx * w;
+                            const int yOther = y + dy * h;
 
-                        HaarWavelet * wavelet = new HaarWavelet(&sampleSize, &position, rects, weights);
-                        wavelets.push_back(wavelet);
+                            if ( !(x + w >= SAMPLE_SIZE
+                                   || y + h > SAMPLE_SIZE
+                                   || xOther + w >= SAMPLE_SIZE
+                                   || yOther + y >= SAMPLE_SIZE) )
+                            {
+                                //create a haar wavelet
+                                std::vector<cv::Rect> rects(2);
+                                rects[0] = cv::Rect(     x,      y, w, h);
+                                rects[1] = cv::Rect(xOther, yOther, w, h);
+
+                                HaarWavelet * wavelet = new HaarWavelet(&sampleSize, &position, rects, weights);
+                                wavelets.push_back(wavelet);
+                            }
+                        }
                     }
-
-                    //case 2: one on top of the other
-                    const int waveletHeight = 2 * h;
-                    if ( !(x + w > SAMPLE_SIZE || y + waveletHeight > SAMPLE_SIZE) )
-                    {
-                        //create a haar wavelet
-                        std::vector<cv::Rect> rects(2);
-                        rects[0] = cv::Rect(x,     y, w, h);
-                        rects[1] = cv::Rect(x, y + h, w, h);
-
-                        HaarWavelet * wavelet = new HaarWavelet(&sampleSize, &position, rects, weights);
-                        wavelets.push_back(wavelet);
-                    }
-
-                    //TODO case 3: disjoint rectangles
                 }
             }
         }
