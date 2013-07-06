@@ -74,7 +74,7 @@ void HaarWavelet::srfs(std::vector<double> & srfsVector) const
         srfsVector[i] = singleRectangleValue(rects[i], *detectorPosition, *sum);
 
         //SRFS works with normalized means (Pavani et al., 2010, section 2.3).
-        srfsVector[i] /= (rects[i].size().height * rects[i].size().width / INT_MAX);
+        srfsVector[i] /= (rects[i].size().height * rects[i].size().width * UCHAR_MAX);
     }
 }
 
