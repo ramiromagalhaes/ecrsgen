@@ -1,0 +1,83 @@
+#include <iostream>
+#include <string>
+
+#include <vector>
+#include <opencv2/core/core.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/objdetect/objdetect.hpp>
+#include <opencv2/highgui/highgui.hpp>
+
+#include "lib/haarwavelet.h"
+
+#define SAMPLE_SIZE 24
+#define MIN_RECT_SIZE 3
+
+
+
+int main()
+{
+    cv::Point position(0,0); //always like that during SRFS production
+    cv::Size sampleSize(SAMPLE_SIZE, SAMPLE_SIZE); //size in pixels of the trainning images
+
+    std::vector<HaarWavelet*> wavelets; //list of haar wavelets
+
+    /*
+     * Pavani's restrictions:
+     * 1) only 2 to 4 rectangles
+     * 2) detector size = 20x20
+     * 3) no rotated rectangles
+     * 4) disjoint rectangles are integer multiples of rectangle size
+     * 5) all rectangles in a HW have the same size
+     * 6) no rectangles smaller than 3x3
+     */
+    std::vector<float> weights(2);
+    weights[0] = 1;
+    weights[1] = -1;
+
+    //First, let's produce simple haar wavelets with 2 features
+    for(int x = 0; x < SAMPLE_SIZE - MIN_RECT_SIZE; x++)
+    {
+        for(int y = 0; y < SAMPLE_SIZE - MIN_RECT_SIZE; y++)
+        {
+            for(int w = 3; w <= SAMPLE_SIZE / MIN_RECT_SIZE; w++)
+            {
+                for(int h = 3; h <= SAMPLE_SIZE / MIN_RECT_SIZE; h++)
+                {
+                    //case 1: side by side
+                    const int waveletWidth = 2 * w;
+                    if ( !(x + waveletWidth > SAMPLE_SIZE || y + h > SAMPLE_SIZE) )
+                    {
+                        //create a haar wavelet
+                        std::vector<cv::Rect> rects(2);
+                        rects[0] = cv::Rect(    x, y, w, h);
+                        rects[1] = cv::Rect(x + w, y, w, h);
+
+                        HaarWavelet * wavelet = new HaarWavelet(&sampleSize, &position, rects, weights);
+                        wavelets.push_back(wavelet);
+                    }
+
+                    //case 2: one on top of the other
+                    const int waveletHeight = 2 * h;
+                    if ( !(x + w > SAMPLE_SIZE || y + waveletHeight > SAMPLE_SIZE) )
+                    {
+                        //create a haar wavelet
+                        std::vector<cv::Rect> rects(2);
+                        rects[0] = cv::Rect(x,     y, w, h);
+                        rects[1] = cv::Rect(x, y + h, w, h);
+
+                        HaarWavelet * wavelet = new HaarWavelet(&sampleSize, &position, rects, weights);
+                        wavelets.push_back(wavelet);
+                    }
+
+                    //TODO case 3: disjoint rectangles
+                }
+            }
+        }
+    }
+
+    //TODO release memory??? meh...
+
+    std::cout << wavelets.size() << std::endl;
+
+    return 0;
+}

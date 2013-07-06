@@ -4,7 +4,10 @@
 
 
 
-HaarWavelet::HaarWavelet() : scale(1), detectorSize(0), detectorPosition(0), detector(0)
+HaarWavelet::HaarWavelet() : scale(1),
+                             detectorSize(0),
+                             detectorPosition(0),
+                             detector(0)
 {
 }
 
