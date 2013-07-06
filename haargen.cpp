@@ -4,12 +4,10 @@
 #include <vector>
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/objdetect/objdetect.hpp>
-#include <opencv2/highgui/highgui.hpp>
 
 #include "lib/haarwavelet.h"
 
-#define SAMPLE_SIZE 24
+#define SAMPLE_SIZE 20
 #define MIN_RECT_SIZE 3
 
 
@@ -43,17 +41,18 @@ int main()
             {
                 for(int h = 3; h <= SAMPLE_SIZE / MIN_RECT_SIZE; h++) //height of both rectangles
                 {
-                    for(int dx = 1; dx <= SAMPLE_SIZE/MIN_RECT_SIZE; dx++) //dx = horizontal displacement multiplier of the second rectangle.
+                    for(int dx = 0; dx <= SAMPLE_SIZE/MIN_RECT_SIZE; dx++) //dx = horizontal displacement multiplier of the second rectangle.
                     {                                                      //If bigger than 1 the rectangles will be disjoint. See Pavani's restriction #4.
-                        for(int dy = 1; dy <= SAMPLE_SIZE/MIN_RECT_SIZE; dy++) //dy is similar to dx but in the vertical direction
+                        for(int dy = 0; dy <= SAMPLE_SIZE/MIN_RECT_SIZE; dy++) //dy is similar to dx but in the vertical direction
                         {
                             const int xOther = x + dx * w;
                             const int yOther = y + dy * h;
 
-                            if ( !(x + w >= SAMPLE_SIZE
-                                   || y + h > SAMPLE_SIZE
-                                   || xOther + w >= SAMPLE_SIZE
-                                   || yOther + y >= SAMPLE_SIZE) )
+                            if ( !( (x == 0 && y == 0)
+                                 || x + w >= SAMPLE_SIZE
+                                 || y + h >= SAMPLE_SIZE
+                                 || xOther + w >= SAMPLE_SIZE
+                                 || yOther + y >= SAMPLE_SIZE) )
                             {
                                 //create a haar wavelet
                                 std::vector<cv::Rect> rects(2);
@@ -62,6 +61,9 @@ int main()
 
                                 HaarWavelet * wavelet = new HaarWavelet(&sampleSize, &position, rects, weights);
                                 wavelets.push_back(wavelet);
+
+                                //std::cout << x      << " " << y      << " " << w << " " << h << std::endl;
+                                //std::cout << xOther << " " << yOther << " " << w << " " << h << std::endl;
                             }
                         }
                     }
@@ -71,7 +73,6 @@ int main()
     }
 
     //TODO release memory??? meh...
-
     std::cout << wavelets.size() << std::endl;
 
     return 0;
