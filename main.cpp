@@ -10,6 +10,26 @@
 
 
 
+void printIntegral(cv::Mat & integralSum) {
+    std::cout << std::endl;
+    for (int i = 0; i < integralSum.rows; ++i) {
+        for (int j = 0; j < integralSum.cols; ++j) {
+            std::cout << integralSum.at<int>(i, j) << " ";
+        }
+        std::cout << std::endl;
+    }
+}
+
+void printImage(cv::Mat & image) {
+    std::cout << std::endl;
+    for (int i = 0; i < image.rows; ++i) {
+        for (int j = 0; j < image.cols; ++j) {
+            std::cout << (int)image.at<unsigned char>(i, j) << " ";
+        }
+        std::cout << std::endl;
+    }
+}
+
 int main()
 {
     cv::Point p(0, 0);  //fixed during SRFS production
@@ -28,32 +48,14 @@ int main()
     cv::Mat integralSquare(image.rows, image.cols, CV_32S);
     cv::integral(image, integralSum, integralSquare);
 
-    /*
-    std::cout << std::endl;
-    for (int i = 0; i < integralSum.rows; ++i) {
-        for (int j = 0; j < integralSum.cols; ++j) {
-            std::cout << integralSum.at<int>(i, j) << " ";
-        }
-        std::cout << std::endl;
-    }
-
-    std::cout << std::endl;
-    for (int i = 0; i < image.rows; ++i) {
-        for (int j = 0; j < image.cols; ++j) {
-            std::cout << (int)image.at<unsigned char>(i, j) << " ";
-        }
-        std::cout << std::endl;
-    }
-    */
+    std::vector<double> srfs_vector;
 
     HaarWavelet w(&s, &p, rects, weights);
     w.setIntegralImages(&integralSum, &integralSquare);
+    w.srfs(srfs_vector);
 
     std::cout << w.dimensions() << std::endl;
     std::cout << w.value() << std::endl;
-
-    std::vector<double> srfs_vector;
-    w.srfs(srfs_vector);
     std::cout << "[" << srfs_vector[0] << ", " << srfs_vector[1] << "]" << std::endl;
 
     return 0;
