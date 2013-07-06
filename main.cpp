@@ -52,5 +52,9 @@ int main()
     std::cout << w.dimensions() << std::endl;
     std::cout << w.value() << std::endl;
 
+    std::vector<double> srfs_vector;
+    w.srfs(srfs_vector);
+    std::cout << "[" << srfs_vector[0] << ", " << srfs_vector[1] << "]" << std::endl;
+
     return 0;
 }
