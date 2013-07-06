@@ -6,63 +6,19 @@
 #include <opencv2/objdetect/objdetect.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
-#include "haarevaluator.h"
+#include "myhaarevaluator.h"
 
 
 
-int main(int argc, char* argv[])
+int main()
 {
-    if (argc != 3) {
-        return 1;
-    }
+    std::vector<float> weights(2);
+    weights[0] = 1;
+    weights[1] = -1;
 
-    {
-        cv::FileStorage fs(argv[1], cv::FileStorage::WRITE);
-
-        cv::Rect rect1(0, 0, 5, 5);
-        cv::Rect rect2(5, 0, 5, 5);
-        cv::Rect rect3(0, 5, 5, 5);
-        cv::Rect rect4(5, 5, 5, 5);
-
-        fs << CC_RECTS << "[";
-            fs << "{:" << "x" << rect1.x << "y" << rect1.y << "width" << rect1.width << "height" << rect1.height << "weight" << 1 << "}";
-            fs << "{:" << "x" << rect2.x << "y" << rect2.y << "width" << rect2.width << "height" << rect2.height << "weight" << -1 << "}";
-            fs << "{:" << "x" << rect3.x << "y" << rect3.y << "width" << rect3.width << "height" << rect3.height << "weight" << -1 << "}";
-            fs << "{:" << "x" << rect4.x << "y" << rect4.y << "width" << rect4.width << "height" << rect4.height << "weight" << 1 << "}";
-        fs << "]";
-
-        fs.release();
-    }
-
-    HaarEvaluator haar;
-    {
-        cv::FileStorage fs(argv[1], cv::FileStorage::READ);
-        cv::FileNode features = fs[CC_RECTS];
-        haar.read(features);
-
-        fs.release();
-    }
-
-    std::stringstream ss;
-
-    cv::Mat image = cv::imread(argv[2], CV_LOAD_IMAGE_GRAYSCALE);
-    for (int i = 0; i < image.cols; ++i) {
-        for (int j = 0; j < image.rows; ++j) {
-            ss << i * image.cols + j << ": " << (int)image.at<uchar>(j, i) << std::endl;
-        }
-    }
-
-
-    haar.setImage(image, cv::Size(10, 10));
-    haar.setWindow(cv::Point(0,0));
-
-    ss << "Wavelet" << std::endl;
-
-    ss << haar.calcOrd(0) << std::endl;
-    ss << haar.calcOrd(1) << std::endl;
-    ss << haar.calcOrd(2) << std::endl;
-    ss << haar.calcOrd(3) << std::endl;
-    std::cout << ss.str();
+    std::vector<cv::Rect> rects(2);
+    rects[0] = cv::Rect(0, 0, 5, 5);
+    rects[1] = cv::Rect(5, 0, 5, 5);
 
     return 0;
 }

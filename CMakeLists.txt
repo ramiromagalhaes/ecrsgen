@@ -12,4 +12,3 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ggdb -D_DEBUG -Wextra -Wall
 set(CMAKE_CSS_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall")
 
 target_link_libraries (ecrsgen opencv_core opencv_imgproc opencv_highgui opencv_objdetect)
-

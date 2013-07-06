@@ -93,7 +93,7 @@ public:
 
         bool tilted;
 
-        enum { RECT_NUM = 4 }; //!!! Eu mudei isso para 4! Era 3.
+        enum { RECT_NUM = 4 }; //!!! TODO Eu mudei isso para 4! Era 3.
 
         struct
         {
@@ -119,7 +119,7 @@ public:
     virtual double calcOrd(int featureIdx) const
     { return (*this)(featureIdx); }
 
-protected:
+public: //TODO me coloque de volta como protected:
     cv::Size origWinSize;
     cv::Ptr<std::vector<Feature> > features;
     Feature* featuresPtr; // optimization

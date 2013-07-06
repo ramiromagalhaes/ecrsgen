@@ -172,7 +172,7 @@ bool HaarEvaluator::setImage( const cv::Mat &image, cv::Size _origWinSize )
     if( hasTiltedFeatures )
     {
         tilted = cv::Mat(rn, cn, CV_32S, tilted0.data);
-        integral(image, sum, sqsum, tilted);
+        cv::integral(image, sum, sqsum, tilted);
     }
     else
         integral(image, sum, sqsum);
