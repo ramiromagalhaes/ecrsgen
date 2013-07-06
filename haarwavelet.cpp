@@ -4,32 +4,21 @@
 
 
 
-#define CV_SUM_PTRS( p0, p1, p2, p3, sum, rect, step )                    \
-    /* (x, y) */                                                          \
-    (p0) = sum + (rect).x + (step) * (rect).y,                            \
-    /* (x + w, y) */                                                      \
-    (p1) = sum + (rect).x + (rect).width + (step) * (rect).y,             \
-    /* (x + w, y) */                                                      \
-    (p2) = sum + (rect).x + (step) * ((rect).y + (rect).height),          \
-    /* (x + w, y + h) */                                                  \
-    (p3) = sum + (rect).x + (rect).width + (step) * ((rect).y + (rect).height)
-
-
-
-HaarWavelet::HaarWavelet()
+HaarWavelet::HaarWavelet() : scale(1), detectorSize(0), detectorPosition(0), detector(0)
 {
-    scale = 1;
 }
 
-HaarWavelet::HaarWavelet(cv::Size *detectorSize_,
-                         cv::Point *detectorPosition_,
+//TODO need to verify if all rects_ are under the detector size boundaries...
+HaarWavelet::HaarWavelet(cv::Size * const detectorSize_,
+                         cv::Point * const detectorPosition_,
                          std::vector<cv::Rect> rects_,
-                         std::vector<float> weights_)
+                         std::vector<float> weights_) : scale(1),
+                                                        detectorSize(detectorSize_),
+                                                        detectorPosition(detectorPosition_),
+                                                        detector(0)
 {
-    assert(rects.size() == weights.size());
+    assert(rects.size() == weights.size()); //TODO convert into exception?
 
-    detectorSize = detectorSize_;
-    detectorPosition = detectorPosition_;
     rects = rects_;
     weights = weights_;
 }
@@ -41,13 +30,12 @@ int HaarWavelet::dimensions() const
 
 bool HaarWavelet::setIntegralImages(cv::Mat * const sum_, cv::Mat * const squareSum_)
 {
-    assert(sum_ && squareSum_);
-
-    if (sum_->cols < detectorSize->width || sum_->rows < detectorSize->height)
+    if ( (!sum_ && !squareSum_)
+            || sum_->cols < detectorSize->width
+            || sum_->rows < detectorSize->height)
     {
         return false;
     }
-
 
     sum = sum_;
     squareSum = squareSum_;
@@ -55,36 +43,26 @@ bool HaarWavelet::setIntegralImages(cv::Mat * const sum_, cv::Mat * const square
     return true;
 }
 
+//TODO still need normalization
 double HaarWavelet::value() const
 {
-    assert(sum && squareSum && detectorPosition);
+    assert(sum && squareSum && detectorPosition); //TODO convert into exception?
 
     double returnValue = 0;
 
     const int dim = dimensions();
     for (int i = 0; i < dim; ++i)
     {
-        double rectValue = 0;
-
-        const cv::Rect * rect = &rect[i];
-        const int x = detectorPosition->x + rect->x;
-        const int y = detectorPosition->y + rect->y;
-        const int x_w = x + rect->width;
-        const int y_h = y + rect->height;
-
-        rectValue += sum->at<int>(y, x);     // (x, y)
-        rectValue -= sum->at<int>(y, x_w);   // (x + w, y)
-        rectValue -= sum->at<int>(y_h, x);   // (x, y + h)
-        rectValue += sum->at<int>(y_h, x_w); // (x + w, y + h)
-
+        double rectValue = singleRectangleValue(rects[i], *detectorPosition, *sum);
         returnValue += (weights[i] * rectValue);
     }
 
     return returnValue;
 }
 
-void HaarWavelet::srfs(std::vector<float> & srfsVector) const
-{ //TODO normalization
+void HaarWavelet::srfs(std::vector<double> & srfsVector) const
+{
+    //TODO convert into exception
     assert(sum && squareSum && detectorPosition);
 
     const int dim = dimensions();
@@ -92,22 +70,26 @@ void HaarWavelet::srfs(std::vector<float> & srfsVector) const
 
     for (int i = 0; i < dim; ++i)
     {
-        float * const v = &srfsVector[i];
+        srfsVector[i] = singleRectangleValue(rects[i], *detectorPosition, *sum);
 
-        const cv::Rect * rect = &rect[i];
-        const int x = detectorPosition->x + rect->x;
-        const int y = detectorPosition->y + rect->y;
-        const int x_w = x + rect->width;
-        const int y_h = y + rect->height;
-
-        *v += sum->at<int>(y, x);     // (x, y)
-        *v -= sum->at<int>(y, x_w);   // (x + w, y)
-        *v -= sum->at<int>(y_h, x);   // (x, y + h)
-        *v += sum->at<int>(y_h, x_w); // (x + w, y + h)
-
-        //SRFS works with means...
-        *v /= (rect->size().height * rect->size().width);
-        //...which are normalized (Pavani et al., 2010, section 2.3).
-        *v /= INT_MAX;
+        //SRFS works with normalized means (Pavani et al., 2010, section 2.3).
+        srfsVector[i] /= (rects[i].size().height * rects[i].size().width / INT_MAX);
     }
+}
+
+inline double HaarWavelet::singleRectangleValue(const cv::Rect &rect, const cv::Point &position, const cv::Mat &s) const
+{
+    double rectVal = 0;
+
+    const int x = position.x + rect.x;
+    const int y = position.y + rect.y;
+    const int x_w = x + rect.width;
+    const int y_h = y + rect.height;
+
+    rectVal += s.at<int>(y, x);     // (x, y)
+    rectVal -= s.at<int>(y, x_w);   // (x + w, y)
+    rectVal -= s.at<int>(y_h, x);   // (x, y + h)
+    rectVal += s.at<int>(y_h, x_w); // (x + w, y + h)
+
+    return rectVal;
 }

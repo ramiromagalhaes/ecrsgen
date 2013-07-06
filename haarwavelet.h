@@ -15,44 +15,63 @@ class Detector;
 class HaarWavelet
 {
 public:
-    HaarWavelet(cv::Size * detectorSize_, cv::Point * detectorPosition_, std::vector<cv::Rect> rects_, std::vector<float> weights_);
+    HaarWavelet(cv::Size * const detectorSize_, cv::Point * const detectorPosition_, std::vector<cv::Rect> rects_, std::vector<float> weights_);
     //HaarWavelet(const cv::FileNode &node);
 
-    //amount of rectangles this Haar wavelet has
+    /**
+     *amount of rectangles this Haar wavelet has
+     */
     int dimensions() const;
 
     //void setDetector(Detector * d_);
-    bool setIntegralImages(cv::Mat * const sum_, cv::Mat * const squareSum_/*, cv::Mat * tilted*/);
     //bool setPosition(cv::Point * pt);
+    bool setIntegralImages(cv::Mat * const sum_, cv::Mat * const squareSum_/*, cv::Mat * tilted*/);
 
-    //Returns the value of this Haar wavelet when applied to an image in a certain position
+    /**
+     *Returns the value of this Haar wavelet when applied to an image in a certain position
+     */
     double value() const;
 
-    //Sets the values of the single rectangle feature space
-    void srfs(std::vector<float> &srfsVector) const;
+    /**
+     *Sets the values of the single rectangle feature space
+     */
+    void srfs(std::vector<double> &srfsVector) const;
 
 private:
     HaarWavelet();
+    inline double singleRectangleValue(const cv::Rect &rect, const cv::Point &position, const cv::Mat &s) const;
 
-    //Each rectangle and its associated weight of this Haar wavelet
+    /**
+     *Each rectangle and its associated weight of this Haar wavelet
+     */
     std::vector<cv::Rect> rects;
     std::vector<float> weights;
 
-    //If scale > 1, the Haar wavelet streaches right and down
+    /**
+     *If scale > 1, the Haar wavelet streaches right and down
+     */
     float scale;
 
-    //Integral images: both simple sum and squareSum.
+    /**
+     *Integral images: both simple sum and squareSum.
+     */
     cv::Mat * sum,
             * squareSum;
 
-    //The top x,y position of the detector window
-    cv::Point * detectorPosition;
+    /**
+     *Size of the detector window
+     */
+    cv::Size * const detectorSize;
 
-    //Size of the detector window
-    cv::Size * detectorSize;
+    /**
+     *The top x,y position of the detector window
+     */
+    cv::Point * const detectorPosition;
 
-    //Holds a refernce for the detector that owns this Haar wavelet.
-    Detector * detector;
+    /**
+     *Holds a refernce for the detector that owns this Haar wavelet.
+     */
+    Detector * const detector;
 };
 
 #endif // HAARWAVELET_H
