@@ -63,8 +63,8 @@ int main()
                                 HaarWavelet * wavelet = new HaarWavelet(&sampleSize, &position, rects, weights);
                                 wavelets.push_back(wavelet);
 
-                                //std::cout << x      << " " << y      << " " << w << " " << h << std::endl;
-                                //std::cout << xOther << " " << yOther << " " << w << " " << h << std::endl;
+                                //std::cout << x      << "," << y      << "," << w << "," << h << std::endl;
+                                //std::cout << xOther << "," << yOther << "," << w << "," << h << std::endl;
                             }
                         }
                     }
