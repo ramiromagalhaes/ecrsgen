@@ -10,7 +10,7 @@
 
 
 
-void printIntegral(cv::Mat & integralSum) {
+inline void printIntegral(cv::Mat & integralSum) {
     std::cout << std::endl;
     for (int i = 0; i < integralSum.rows; ++i) {
         for (int j = 0; j < integralSum.cols; ++j) {
@@ -20,7 +20,7 @@ void printIntegral(cv::Mat & integralSum) {
     }
 }
 
-void printImage(cv::Mat & image) {
+inline void printImage(cv::Mat & image) {
     std::cout << std::endl;
     for (int i = 0; i < image.rows; ++i) {
         for (int j = 0; j < image.cols; ++j) {
@@ -44,19 +44,34 @@ int main()
     weights[1] = -1;
 
     cv::Mat image = cv::imread("/home/ramiro/workspace/ecrsgen/exemplo.bmp", CV_8U); //I must inform the flags
-    cv::Mat integralSum(image.rows, image.cols, CV_32S);
-    cv::Mat integralSquare(image.rows, image.cols, CV_32S);
+    cv::Mat integralSum(image.rows + 1, image.cols + 1, CV_32S);
+    cv::Mat integralSquare(image.rows + 1, image.cols + 1, CV_32S);
     cv::integral(image, integralSum, integralSquare);
 
-    std::vector<double> srfs_vector;
+    {
+        std::vector<double> srfs_vector;
 
-    HaarWavelet w(&s, &p, rects, weights);
-    w.setIntegralImages(&integralSum, &integralSquare);
-    w.srfs(srfs_vector);
+        HaarWavelet w(&s, &p, rects, weights);
+        w.setIntegralImages(&integralSum, &integralSquare);
+        w.srfs(srfs_vector);
 
-    std::cout << w.dimensions() << std::endl;
-    std::cout << w.value() << std::endl;
-    std::cout << "[" << srfs_vector[0] << ", " << srfs_vector[1] << "]" << std::endl;
+        std::cout << w.dimensions() << std::endl;
+        std::cout << w.value() << std::endl;
+        std::cout << "[" << srfs_vector[0] << ", " << srfs_vector[1] << "]" << std::endl;
+    }
+
+    {
+        std::vector<double> srfs_vector;
+
+        cv::FileStorage fs("/home/ramiro/workspace/ecrsgen/haar.xml", cv::FileStorage::READ);
+        HaarWavelet w(&s, &p, fs["wavelet"]);
+        w.setIntegralImages(&integralSum, &integralSquare);
+        w.srfs(srfs_vector);
+
+        std::cout << w.dimensions() << std::endl;
+        std::cout << w.value() << std::endl;
+        std::cout << "[" << srfs_vector[0] << ", " << srfs_vector[1] << "]" << std::endl;
+    }
 
     return 0;
 }

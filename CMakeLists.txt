@@ -16,11 +16,14 @@ file( GLOB LIB_SOURCES lib/*.cpp )
 file( GLOB LIB_HEADERS lib/*.h )
 add_library( haarwavelet ${LIB_SOURCES} ${LIB_HEADERS} )
 
+# A simple test program
+add_executable( test "test.cpp" )
+target_link_libraries(test haarwavelet opencv_core opencv_imgproc opencv_highgui opencv_objdetect)
 
-# Here is the first executable
+# The Haar wavelet generator
 add_executable( haargen "haargen.cpp" )
 target_link_libraries(haargen haarwavelet opencv_core opencv_imgproc opencv_highgui opencv_objdetect)
 
-# Here is the other one executable
+# The SRFS generator
 add_executable( ecrsgen "ecrsgen.cpp" )
-target_link_libraries(ecrsgen haarwavelet opencv_core opencv_imgproc opencv_highgui opencv_objdetect)
+target_link_libraries(ecrsgen haarwavelet opencv_core opencv_imgproc opencv_highgui opencv_objdetect boost_filesystem boost_system boost_serialization)

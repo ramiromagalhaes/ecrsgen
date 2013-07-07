@@ -15,8 +15,16 @@ class Detector;
 class HaarWavelet
 {
 public:
+
+    /**
+     * "Raw" constructor for a Haar wavelet.
+     */
     HaarWavelet(cv::Size * const detectorSize_, cv::Point * const detectorPosition_, std::vector<cv::Rect> rects_, std::vector<float> weights_);
-    //HaarWavelet(const cv::FileNode &node);
+
+    /**
+     * Constructs a Haar wavelet from a given cv::FileNode.
+     */
+    HaarWavelet(cv::Size * const detectorSize_, cv::Point * const detectorPosition_, const cv::FileNode & node);
 
     /**
      *amount of rectangles this Haar wavelet has

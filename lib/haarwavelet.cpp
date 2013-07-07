@@ -26,6 +26,44 @@ HaarWavelet::HaarWavelet(cv::Size * const detectorSize_,
     weights = weights_;
 }
 
+/*
+ * Sample wavelet data in XML.
+ *
+ * <?xml version="1.0"?>
+ * <opencv_storage>
+ * <wavelet>
+ *   <rects>2</rects>
+ *   <rect>12 0 12 12 1 0 12 12 12 -1</rect>
+ * </wavelet>
+ * </opencv_storage>
+ */
+HaarWavelet::HaarWavelet(cv::Size * const detectorSize_,
+                         cv::Point * const detectorPosition_,
+                         const cv::FileNode &node) : scale(1),
+                                                     detectorSize(detectorSize_),
+                                                     detectorPosition(detectorPosition_),
+                                                     detector(0)
+{
+    const int rectangles = (int)node["rects"];
+
+    const cv::FileNode rectNode = node["rect"];
+    cv::FileNodeIterator rectParamsIt = rectNode.begin();
+    for(int i = 0; i < rectangles; i++)
+    {
+        float weight;
+        cv::Rect rect;
+
+        rectParamsIt >> rect.x
+                     >> rect.y
+                     >> rect.width
+                     >> rect.height;
+        rectParamsIt >> weight;
+
+        rects.push_back(rect);
+        weights.push_back(weight);
+    }
+}
+
 int HaarWavelet::dimensions() const
 {
     return (int)rects.size();
