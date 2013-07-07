@@ -6,57 +6,45 @@
 #include <opencv2/objdetect/objdetect.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
-#include "lib/haarwavelet.h"
+#include "myhaarevaluator.h"
 
 
 
-void printIntegral(cv::Mat & integralSum) {
-    std::cout << std::endl;
-    for (int i = 0; i < integralSum.rows; ++i) {
-        for (int j = 0; j < integralSum.cols; ++j) {
-            std::cout << integralSum.at<int>(i, j) << " ";
-        }
-        std::cout << std::endl;
-    }
-}
-
-void printImage(cv::Mat & image) {
-    std::cout << std::endl;
-    for (int i = 0; i < image.rows; ++i) {
-        for (int j = 0; j < image.cols; ++j) {
-            std::cout << (int)image.at<unsigned char>(i, j) << " ";
-        }
-        std::cout << std::endl;
-    }
-}
-
-int main()
+int main(int argc, char* argv[])
 {
-    cv::Point p(0, 0);  //fixed during SRFS production
-    cv::Size s(24, 24); //that's the size of the trainning images
+    const cv::Size sampleSize(sampleSummedAreaTable.cols, sampleSummedAreaTable.rows);
 
-    std::vector<cv::Rect> rects(2);
-    rects[0] = cv::Rect(12, 0, 12, 12);
-    rects[1] = cv::Rect(0, 12, 12, 12);
+    //carrego uma lista de parâmetros de haar wavelets
+    //carrego uma lista de arquivos com amostras positivas
+    //carrego uma lista de arquivos com amostras negativas
+    //crio/carrego uma lista de arquivos de saída
 
-    std::vector<float> weights(2);
-    weights[0] = 1;
-    weights[1] = -1;
+    //para cada amostra (positiva ou negativa)
+    for(;;)
+    {
+        std::string image;
+        cv::Mat sample = imread(image);
+        cv::Mat sampleSummedAreaTable;
+        cv::Mat sampleSquaredSummedAreaTable;
+        cv::integral(sample, sampleSummedAreaTable, sampleSquaredSummedAreaTable, CV_32S);
 
-    cv::Mat image = cv::imread("/home/ramiro/workspace/ecrsgen/exemplo.bmp", CV_8U); //I must inform the flags
-    cv::Mat integralSum(image.rows, image.cols, CV_32S);
-    cv::Mat integralSquare(image.rows, image.cols, CV_32S);
-    cv::integral(image, integralSum, integralSquare);
+        //para cada parâmetro do haar wavelet
+        for(;;)
+        {
+            std::vector<cv::Rect> rects;
+            std::vector<float> weights;
 
-    std::vector<double> srfs_vector;
+            MyHaarEvaluator haar(rects, weights);
 
-    HaarWavelet w(&s, &p, rects, weights);
-    w.setIntegralImages(&integralSum, &integralSquare);
-    w.srfs(srfs_vector);
+            std::vector<float> srfs_vector(rects.size());
 
-    std::cout << w.dimensions() << std::endl;
-    std::cout << w.value() << std::endl;
-    std::cout << "[" << srfs_vector[0] << ", " << srfs_vector[1] << "]" << std::endl;
+            haar.setImage(sampleSummedAreaTable, sampleSize);
+            haar.setWindow(cv::Point(0, 0));
+            haar.srfs(srfs_vector);
+
+            //salva srfs_vector adequadamente
+        }
+    }
 
     return 0;
 }
