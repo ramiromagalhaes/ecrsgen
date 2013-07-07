@@ -37,9 +37,9 @@ int main()
     {
         for(int y = 0; y < SAMPLE_SIZE - MIN_RECT_SIZE; y++) //y position of the first rectangle
         {
-            for(int w = 3; w <= SAMPLE_SIZE / MIN_RECT_SIZE; w++) //width of both rectangles
+            for(int w = 1; w <= SAMPLE_SIZE / MIN_RECT_SIZE; w++) //width of both rectangles
             {
-                for(int h = 3; h <= SAMPLE_SIZE / MIN_RECT_SIZE; h++) //height of both rectangles
+                for(int h = 1; h <= SAMPLE_SIZE / MIN_RECT_SIZE; h++) //height of both rectangles
                 {
                     for(int dx = 0; dx <= SAMPLE_SIZE/MIN_RECT_SIZE; dx++) //dx = horizontal displacement multiplier of the second rectangle.
                     {                                                      //If bigger than 1 the rectangles will be disjoint. See Pavani's restriction #4.
@@ -48,11 +48,12 @@ int main()
                             const int xOther = x + dx * w;
                             const int yOther = y + dy * h;
 
-                            if ( !( (x == 0 && y == 0)
-                                  || x + w >= SAMPLE_SIZE
-                                  || y + h >= SAMPLE_SIZE
-                                  || xOther + w >= SAMPLE_SIZE
-                                  || yOther + y >= SAMPLE_SIZE) )
+                            if ( !( (w * h < MIN_RECT_SIZE * MIN_RECT_SIZE) //Pavani's restriction #6
+                                 || (dx == 0 && dy == 0)
+                                 || x + w >= SAMPLE_SIZE
+                                 || y + h >= SAMPLE_SIZE
+                                 || xOther + w >= SAMPLE_SIZE
+                                 || yOther + y >= SAMPLE_SIZE) )
                             {
                                 //create a haar wavelet
                                 std::vector<cv::Rect> rects(2);
