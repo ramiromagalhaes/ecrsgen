@@ -48,7 +48,7 @@ int main()
     cv::Mat integralSquare(image.rows + 1, image.cols + 1, CV_32S);
     cv::integral(image, integralSum, integralSquare);
 
-    {
+    { //scope for first test
         std::vector<double> srfs_vector;
 
         HaarWavelet w(&s, &p, rects, weights);
@@ -60,7 +60,7 @@ int main()
         std::cout << "[" << srfs_vector[0] << ", " << srfs_vector[1] << "]" << std::endl;
     }
 
-    {
+    { //scope for second test
         std::vector<double> srfs_vector;
 
         cv::FileStorage fs("/home/ramiro/workspace/ecrsgen/haar.xml", cv::FileStorage::READ);
