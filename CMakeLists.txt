@@ -10,6 +10,8 @@ project(generators)
 set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -ggdb -D_DEBUG -Wextra -Wall")
 set(CMAKE_CSS_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall")
 
+
+
 if(WIN32)
     # For OpenCV installation instructions visit http://docs.opencv.org/doc/tutorials/introduction/windows_install/windows_install.html#windowssetpathandenviromentvariable
     # For Boost C++ libraries installation instructions visit http://andres.jaimes.net/718/how-to-install-the-c-boost-libraries-on-windows/
@@ -19,11 +21,11 @@ if(WIN32)
 endif(WIN32)
 
 
-
 # More on find_package command http://www.cmake.org/Wiki/CMake:How_To_Find_Libraries
 find_package( OpenCV REQUIRED COMPONENTS core imgproc highgui objdetect )
 find_package( Boost REQUIRED COMPONENTS filesystem system serialization )
 if(WIN32)
+    # Probably thanks to the way MingW is configured, I need to do this while compiling on Windows.
     include_directories( ${Boost_INCLUDE_DIR})
 endif(WIN32)
 #set(Boost_USE_STATIC_LIBS ON)
