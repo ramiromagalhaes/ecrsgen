@@ -43,7 +43,7 @@ inline void loadSamples(const std::string & samplesDir, std::vector<std::string>
         {
             if ( boost::filesystem::is_regular_file(dir_iter->status()) )
             {
-                samples.push_back(dir_iter->path().c_str());
+                samples.push_back(dir_iter->path().string());
             }
         }
     }
