@@ -13,9 +13,9 @@ set(CMAKE_CSS_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall")
 if(WIN32)
     # For OpenCV installation instructions visit http://docs.opencv.org/doc/tutorials/introduction/windows_install/windows_install.html#windowssetpathandenviromentvariable
     # For Boost C++ libraries installation instructions visit http://andres.jaimes.net/718/how-to-install-the-c-boost-libraries-on-windows/
-    set(BOOST_ROOT "C:/boost")
-    set(CMAKE_INCLUDE_PATH ${CMAKE_INCLUDE_PATH} "C:/opencv_src/build/include;C:/boost/lib")
-    set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} "C:/opencv_src/build/x86/mingw/lib")
+    set( BOOST_ROOT "C:/boost")
+    set( CMAKE_INCLUDE_PATH ${CMAKE_INCLUDE_PATH} "C:/opencv_src/build/include" )
+    set( CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} "C:/opencv_src/build/x86/mingw/lib" )
 endif(WIN32)
 
 
@@ -23,12 +23,15 @@ endif(WIN32)
 # More on find_package command http://www.cmake.org/Wiki/CMake:How_To_Find_Libraries
 find_package( OpenCV REQUIRED COMPONENTS core imgproc highgui objdetect )
 find_package( Boost REQUIRED COMPONENTS filesystem system serialization )
+if(WIN32)
+    include_directories( ${Boost_INCLUDE_DIR})
+endif(WIN32)
 #set(Boost_USE_STATIC_LIBS ON)
 #set(Boost_USE_MULTITHREADED ON)
-message( "OpenCV libraries ${OpenCV_LIBS}" )
-message( "OpenCV includes ${OpenCV_INCLUDE_DIRS}" )
-message( "Boost libraries ${Boost_LIBRARIES}" )
-message( "Boost includes ${Boost_INCLUDE_DIRS}" )
+#message( "OpenCV libraries ${OpenCV_LIBS}" )
+#message( "OpenCV includes ${OpenCV_INCLUDE_DIRS}" )
+#message( "Boost libraries ${Boost_LIBRARIES}" )
+#message( "Boost includes ${Boost_INCLUDE_DIRS}" )
 
 
 
