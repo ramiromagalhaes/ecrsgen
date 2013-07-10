@@ -27,7 +27,7 @@ public:
     HaarWavelet(cv::Size * const detectorSize_, cv::Point * const detectorPosition_, const cv::FileNode & node);
 
     /**
-     *amount of rectangles this Haar wavelet has
+     * Amount of rectangles this Haar wavelet has
      */
     int dimensions() const;
 
@@ -36,14 +36,19 @@ public:
     bool setIntegralImages(cv::Mat * const sum_, cv::Mat * const squareSum_/*, cv::Mat * tilted*/);
 
     /**
-     *Returns the value of this Haar wavelet when applied to an image in a certain position
+     * Returns the value of this Haar wavelet when applied to an image in a certain position
      */
     double value() const;
 
     /**
-     *Sets the values of the single rectangle feature space
+     * Sets the values of the single rectangle feature space.
      */
     void srfs(std::vector<double> &srfsVector) const;
+
+    /**
+     * Writes this Haar wavelet into the given cv::FileStorage.
+     */
+    void write(cv::FileStorage& fs) const;
 
 private:
 

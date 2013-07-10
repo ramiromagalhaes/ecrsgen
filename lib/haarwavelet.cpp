@@ -32,8 +32,8 @@ HaarWavelet::HaarWavelet(cv::Size * const detectorSize_,
  * <?xml version="1.0"?>
  * <opencv_storage>
  * <wavelet>
- *   <rects>2</rects>
- *   <rect>12 0 12 12 1 0 12 12 12 -1</rect>
+ *   <rects>2</rects> <!--Amount of rectangles are encoded in the rect entity.-->
+ *   <rect>12 0 12 12 1 0 12 12 12 -1</rect> <!-- The rect parameters. -->
  * </wavelet>
  * </opencv_storage>
  */
@@ -117,6 +117,34 @@ void HaarWavelet::srfs(std::vector<double> & srfsVector) const
         //SRFS works with normalized means (Pavani et al., 2010, section 2.3).
         srfsVector[i] /= (rects[i].size().height * rects[i].size().width * UCHAR_MAX);
     }
+}
+
+
+/**
+ * See also constructor that takes a cv::FileNode.
+ */
+void HaarWavelet::write(cv::FileStorage &fs) const
+{
+    if (dimensions() == 0) //won't store a meaningless wavelet
+    {
+        return;
+    }
+
+    fs << "wavelet" << "{";
+    fs << "rects" << dimensions();
+
+    fs << "rect" << "[";
+    for (int i = 0; i < dimensions(); ++i)
+    {
+        fs << rects[i].x
+           << rects[i].y
+           << rects[i].width
+           << rects[i].height
+           << weights[i];
+    }
+    fs << "]";
+
+    fs << "}";
 }
 
 inline double HaarWavelet::singleRectangleValue(const cv::Rect &rect, const cv::Point &position, const cv::Mat &s) const

@@ -73,5 +73,14 @@ int main()
         std::cout << "[" << srfs_vector[0] << ", " << srfs_vector[1] << "]" << std::endl;
     }
 
+    { //scope for second test
+        std::vector<double> srfs_vector;
+
+        cv::FileStorage fs("/home/ramiro/workspace/ecrsgen/haar.xml", cv::FileStorage::READ);
+        cv::FileStorage fs2("/home/ramiro/workspace/ecrsgen/haar2.xml", cv::FileStorage::WRITE);
+        HaarWavelet w(&s, &p, fs["wavelet"]);
+        w.write(fs2);
+    }
+
     return 0;
 }
