@@ -12,12 +12,12 @@
 
 
 
-int main()
+int main(int argc, char * args[])
 {
     cv::Point position(0,0); //always like that during SRFS production
     cv::Size sampleSize(SAMPLE_SIZE, SAMPLE_SIZE); //size in pixels of the trainning images
 
-    std::vector<HaarWavelet*> wavelets; //list of haar wavelets
+    cv::FileStorage waveletStorage(args[1], cv::FileStorage::WRITE);
 
     /*
      * Pavani's restrictions:
@@ -60,11 +60,8 @@ int main()
                                 rects[0] = cv::Rect(     x,      y, w, h);
                                 rects[1] = cv::Rect(xOther, yOther, w, h);
 
-                                HaarWavelet * wavelet = new HaarWavelet(&sampleSize, &position, rects, weights);
-                                wavelets.push_back(wavelet);
-
-                                //std::cout << x      << "," << y      << "," << w << "," << h << std::endl;
-                                //std::cout << xOther << "," << yOther << "," << w << "," << h << std::endl;
+                                HaarWavelet wavelet(&sampleSize, &position, rects, weights);
+                                wavelet.write(waveletStorage);
                             }
                         }
                     }
@@ -72,9 +69,6 @@ int main()
             }
         }
     }
-
-    //TODO release memory??? meh...
-    std::cout << wavelets.size() << std::endl;
 
     return 0;
 }
