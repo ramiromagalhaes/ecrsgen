@@ -2,3 +2,4 @@
 .project
 CMakeLists.txt.user
 
+haar2.xml haarwavelets.xml haar.xml
