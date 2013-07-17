@@ -1,5 +1,5 @@
 .cproject
 .project
 CMakeLists.txt.user
+*.xml
 
-haar2.xml haarwavelets.xml haar.xml
