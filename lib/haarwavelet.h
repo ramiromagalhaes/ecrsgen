@@ -50,6 +50,26 @@ public:
      */
     void write(cv::FileStorage& fs) const;
 
+    /**
+     * Returns a constant iterator to the start of a collection of rectangles that compose this wavelet.
+     */
+    std::vector<cv::Rect>::const_iterator rects_begin() const;
+
+    /**
+     * Returns a constant iterator to the end of the collection of rectangles that compose this wavelet.
+     */
+    const std::vector<cv::Rect>::const_iterator rects_end() const;
+
+    /**
+     * Returns a constant iterator...
+     */
+    std::vector<float>::const_iterator weights_begin() const;
+
+    /**
+     * Returns a constant iterator...
+     */
+    const std::vector<float>::const_iterator weights_end() const;
+
 private:
 
     /**
@@ -63,7 +83,7 @@ private:
     inline double singleRectangleValue(const cv::Rect &rect, const cv::Point &position, const cv::Mat &s) const;
 
     /**
-     *Each rectangle and its associated weight of this Haar wavelet
+     * Each rectangle and its associated weight of this Haar wavelet
      */
     std::vector<cv::Rect> rects;
     std::vector<float> weights;

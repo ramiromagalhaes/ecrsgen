@@ -76,22 +76,24 @@ int main(int argc, char * args[])
 
                         for(int d = 0; d < k; d++) //...where the rectangle d + 1 is (px, py) pixels away from rectangle's d upper left corner...
                         {
-                            for(dx[d] = 0; dx[d] < SAMPLE_SIZE/w; dx[d]++) //dx displacement of rectangle d + 1 in regard to d
+                            for(dx[d] = 0; dx[d] < SAMPLE_SIZE; dx[d]++) //dx displacement of rectangle d + 1 in regard to d
                             {
-                                for(dy[d] = 0; dy[d] < SAMPLE_SIZE/h; dy[d]++)  //dy displacement of rectangle d + 1 in regard to d
+                                for(dy[d] = 0; dy[d] < SAMPLE_SIZE; dy[d]++)  //dy displacement of rectangle d + 1 in regard to d
                                 {
-                                    bool overlap = false;
-                                    for (int i = 0; i < k; i++) //...as long as no rectangles overlap...
                                     {
-                                        if (dx[i] == 0 && dy[i] == 0) //If both displacements == 0 the rectangles are overlaped.
+                                        bool overlap = false;
+                                        for (int i = 0; i < k; i++) //...as long as no rectangles overlap...
                                         {
-                                            overlap = true;
-                                            break;
+                                            if (dx[i] == 0 && dy[i] == 0) //If both displacements == 0 the rectangles are overlaped.
+                                            {
+                                                overlap = true;
+                                                break;
+                                            }
                                         }
-                                    }
-                                    if (overlap)
-                                    {
-                                        continue;
+                                        if (overlap)
+                                        {
+                                            continue;
+                                        }
                                     }
 
                                     for (int i = 1; i <= k; i++) //...where px[d+1] = dx[d] * w and py[d+1] = dy[d] * h (as per restriction #4)...
@@ -100,21 +102,23 @@ int main(int argc, char * args[])
                                         y[i] = y[i-1] + dy[i-1] * h;
                                     }
 
-                                    bool overflow = false;
-                                    for (int i = 0; i <= k; i++) //...and all rectangles fit into the sampling window...
                                     {
-                                        if(x[i] >= SAMPLE_SIZE - 1 //x and y must be at least 1 pixel away from the window's last pixel
-                                                || y[i] >= SAMPLE_SIZE - 1
-                                                || x[i] + w >= SAMPLE_SIZE //and the rectangle must fully fit the  window
-                                                || y[i] + h >= SAMPLE_SIZE)
+                                        bool overflow = false;
+                                        for (int i = 0; i <= k; i++) //...and all rectangles fit into the sampling window...
                                         {
-                                            overflow = true;
-                                            break;
+                                            if(x[i] >= SAMPLE_SIZE //x and y must be at least 1 pixel away from the window's last pixel
+                                                    || y[i] >= SAMPLE_SIZE
+                                                    || x[i] + w > SAMPLE_SIZE //and the rectangle must fully fit the window
+                                                    || y[i] + h > SAMPLE_SIZE)
+                                            {
+                                                overflow = true;
+                                                break;
+                                            }
                                         }
-                                    }
-                                    if(overflow)
-                                    {
-                                        continue;
+                                        if(overflow)
+                                        {
+                                            continue;
+                                        }
                                     }
 
                                     //...then create the wavelet.

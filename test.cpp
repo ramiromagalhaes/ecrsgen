@@ -64,22 +64,16 @@ int main()
         std::vector<double> srfs_vector;
 
         cv::FileStorage fs("/home/ramiro/workspace/ecrsgen/haar.xml", cv::FileStorage::READ);
-        HaarWavelet w(&s, &p, fs["wavelet"]);
+        cv::FileNode wavelets = fs.root();
+        cv::FileNodeIterator it = wavelets.begin();
+
+        HaarWavelet w(&s, &p, *it);//TODO test me
         w.setIntegralImages(&integralSum, &integralSquare);
         w.srfs(srfs_vector);
 
         std::cout << w.dimensions() << std::endl;
         std::cout << w.value() << std::endl;
         std::cout << "[" << srfs_vector[0] << ", " << srfs_vector[1] << "]" << std::endl;
-    }
-
-    { //scope for second test
-        std::vector<double> srfs_vector;
-
-        cv::FileStorage fs("/home/ramiro/workspace/ecrsgen/haar.xml", cv::FileStorage::READ);
-        cv::FileStorage fs2("/home/ramiro/workspace/ecrsgen/haar2.xml", cv::FileStorage::WRITE);
-        HaarWavelet w(&s, &p, fs["wavelet"]);
-        w.write(fs2);
     }
 
     return 0;

@@ -130,7 +130,7 @@ void HaarWavelet::write(cv::FileStorage &fs) const
         return;
     }
 
-    fs << "wavelet" << "{";
+    fs << "{";
     fs << "rects" << dimensions();
 
     fs << "rect" << "[";
@@ -145,6 +145,26 @@ void HaarWavelet::write(cv::FileStorage &fs) const
     fs << "]";
 
     fs << "}";
+}
+
+std::vector<cv::Rect>::const_iterator HaarWavelet::rects_begin() const
+{
+    return rects.begin();
+}
+
+const std::vector<cv::Rect>::const_iterator HaarWavelet::rects_end() const
+{
+    return rects.end();
+}
+
+std::vector<float>::const_iterator HaarWavelet::weights_begin() const
+{
+    return weights.begin();
+}
+
+const std::vector<float>::const_iterator HaarWavelet::weights_end() const
+{
+    return weights.end();
 }
 
 inline double HaarWavelet::singleRectangleValue(const cv::Rect &rect, const cv::Point &position, const cv::Mat &s) const
