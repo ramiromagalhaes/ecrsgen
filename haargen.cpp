@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <sstream>
 
 #include <vector>
 #include <opencv2/core/core.hpp>
@@ -35,10 +36,12 @@ int main(int argc, char * args[])
      * 5) all rectangles in a HW have the same size
      * 6) no rectangles smaller than 3x3
      */
-    std::vector<float> weights[3]; // will vary depending on the amount of rects
+    std::vector<float> weights[3];
     weights[0].resize(2);
     weights[0][0] = -1;
     weights[0][1] = 1;
+
+    //TODO the weights of wavelets of disconnected parts may be different
     weights[1].resize(3);
     weights[1][0] = -1;
     weights[1][1] = 2;
@@ -49,7 +52,6 @@ int main(int argc, char * args[])
     weights[2][2] = -1;
     weights[2][3] = 1;
 
-    //First, let's produce simple haar wavelets with 2 features
     for(int w = 1; w <= SAMPLE_SIZE; w++) //width of both rectangles.
     {
         for(int h = 1; h <= SAMPLE_SIZE; h++) //height of both rectangles
@@ -101,7 +103,10 @@ int main(int argc, char * args[])
                                     bool overflow = false;
                                     for (int i = 0; i <= k; i++) //...and all rectangles fit into the sampling window...
                                     {
-                                        if(x[i] >= SAMPLE_SIZE || y[i] >= SAMPLE_SIZE)
+                                        if(x[i] >= SAMPLE_SIZE - 1 //x and y must be at least 1 pixel away from the window's last pixel
+                                                || y[i] >= SAMPLE_SIZE - 1
+                                                || x[i] + w >= SAMPLE_SIZE //and the rectangle must fully fit the  window
+                                                || y[i] + h >= SAMPLE_SIZE)
                                         {
                                             overflow = true;
                                             break;
@@ -118,7 +123,11 @@ int main(int argc, char * args[])
                                     {
                                         rects[i] = cv::Rect(x[i], y[i], w, h);
                                     }
+
                                     HaarWavelet wavelet(&sampleSize, &position, rects, weights[k - 1]);
+                                    std::stringstream waveletEntityName;
+                                    waveletEntityName << "wavelet" << generetedWaveletCounter; //opencv persistence sucks hard
+                                    waveletStorage << waveletEntityName.str();
                                     wavelet.write(waveletStorage);
                                     generetedWaveletCounter++;
                                 }
