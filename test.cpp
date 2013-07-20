@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <fstream>
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -67,13 +68,32 @@ int main()
         cv::FileNode wavelets = fs.root();
         cv::FileNodeIterator it = wavelets.begin();
 
-        HaarWavelet w(&s, &p, *it);//TODO test me
+        HaarWavelet w(&s, &p, *it);
         w.setIntegralImages(&integralSum, &integralSquare);
         w.srfs(srfs_vector);
 
         std::cout << w.dimensions() << std::endl;
         std::cout << w.value() << std::endl;
         std::cout << "[" << srfs_vector[0] << ", " << srfs_vector[1] << "]" << std::endl;
+
+        fs.release();
+    }
+
+    { //scope for third test
+        std::vector<double> srfs_vector;
+
+        std::ifstream ifs;
+        ifs.open("/home/ramiro/workspace/ecrsgen/haar.txt", std::ifstream::in);
+
+        HaarWavelet w(&s, &p, ifs);
+        w.setIntegralImages(&integralSum, &integralSquare);
+        w.srfs(srfs_vector);
+
+        std::cout << w.dimensions() << std::endl;
+        std::cout << w.value() << std::endl;
+        std::cout << "[" << srfs_vector[0] << ", " << srfs_vector[1] << "]" << std::endl;
+
+        ifs.close();
     }
 
     return 0;

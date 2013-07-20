@@ -20,7 +20,7 @@ HaarWavelet::HaarWavelet(cv::Size * const detectorSize_,
                                                         detectorPosition(detectorPosition_),
                                                         detector(0)
 {
-    assert(rects.size() == weights.size()); //TODO convert into exception?
+    assert(rects.size() == weights.size()); //TODO convert into exception
 
     rects = rects_;
     weights = weights_;
@@ -62,6 +62,38 @@ HaarWavelet::HaarWavelet(cv::Size * const detectorSize_,
         rects.push_back(rect);
         weights.push_back(weight);
     }
+}
+
+/*
+ * Sample wavelet data
+ * rects x1 y1 w1 h1 weight x2 y2 w2 h2 weight2...
+ *
+ */
+HaarWavelet::HaarWavelet(cv::Size * const detectorSize_,
+                         cv::Point * const detectorPosition_,
+                         std::istream &input) : scale(1),
+                                                            detectorSize(detectorSize_),
+                                                            detectorPosition(detectorPosition_),
+                                                            detector(0)
+{
+    int rectangles;
+    input >> rectangles;
+
+    for (int i = 0; i < rectangles; i++)
+    {
+        float weight;
+        cv::Rect rect;
+
+        input >> rect.x
+                   >> rect.y
+                   >> rect.width
+                   >> rect.height;
+        input >> weight;
+
+        rects.push_back(rect);
+        weights.push_back(weight);
+    }
+
 }
 
 int HaarWavelet::dimensions() const
@@ -123,11 +155,11 @@ void HaarWavelet::srfs(std::vector<double> & srfsVector) const
 /**
  * See also constructor that takes a cv::FileNode.
  */
-void HaarWavelet::write(cv::FileStorage &fs) const
+bool HaarWavelet::write(cv::FileStorage &fs) const
 {
     if (dimensions() == 0) //won't store a meaningless wavelet
     {
-        return;
+        return false;
     }
 
     fs << "{";
@@ -145,6 +177,33 @@ void HaarWavelet::write(cv::FileStorage &fs) const
     fs << "]";
 
     fs << "}";
+
+    return true;
+}
+
+/**
+ * See also constructor that takes a std::istream.
+ */
+bool HaarWavelet::write(std::ostream &output) const
+{
+    if (dimensions() == 0) //won't store a meaningless wavelet
+    {
+        return false;
+    }
+
+    output << dimensions() << " ";
+
+    for (int i = 0; i < dimensions(); i++)
+    {
+        output << " " << rects[i].x
+               << " " << rects[i].y
+               << " " << rects[i].width
+               << " " << rects[i].height
+               << " " << weights[i]
+               << " ";
+    }
+
+    return true;
 }
 
 std::vector<cv::Rect>::const_iterator HaarWavelet::rects_begin() const

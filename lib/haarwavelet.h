@@ -2,6 +2,8 @@
 #define HAARWAVELET_H
 
 #include <vector>
+#include <iostream>
+
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -27,6 +29,11 @@ public:
     HaarWavelet(cv::Size * const detectorSize_, cv::Point * const detectorPosition_, const cv::FileNode & node);
 
     /**
+     * Constructs a Haar wavelet by reading a input stream.
+     */
+    HaarWavelet(cv::Size * const detectorSize_, cv::Point * const detectorPosition_, std::istream &input);
+
+    /**
      * Amount of rectangles this Haar wavelet has
      */
     int dimensions() const;
@@ -48,7 +55,12 @@ public:
     /**
      * Writes this Haar wavelet into the given cv::FileStorage.
      */
-    void write(cv::FileStorage& fs) const;
+    bool write(cv::FileStorage& fs) const;
+
+    /**
+     * Writes this Haar wavelet into the given std::ostream.
+     */
+    bool write(std::ostream &output) const;
 
     /**
      * Returns a constant iterator to the start of a collection of rectangles that compose this wavelet.
