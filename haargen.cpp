@@ -206,7 +206,7 @@ void gen3d(cv::Size * const sampleSize, cv::Point * const position,
 /**
  * Generates Haar wavelets with 4 rectangles.
  */
-void gen3d(cv::Size * const sampleSize, cv::Point * const position,
+void gen4d(cv::Size * const sampleSize, cv::Point * const position,
            cv::FileStorage &waveletStorage, int &counter)
 {
     const int K = 4; //number of dimensions of the generated wavelets
@@ -246,27 +246,63 @@ void gen3d(cv::Size * const sampleSize, cv::Point * const position,
                     {
                         for(dy[0] = 0; dy[0] < SAMPLE_SIZE; dy[0]++)
                         {
+                            if (dx[0] == 0 && dy[0] == 0)
+                            {
+                                continue;
+                            }
+
+                            x[1] = x[0] + dx[0] * w;
+                            y[1] = y[0] + dy[0] * h;
+
+                            if (   x[1] >= SAMPLE_SIZE
+                                || y[1] >= SAMPLE_SIZE
+                                || x[1] + w > SAMPLE_SIZE
+                                || y[1] + h > SAMPLE_SIZE)
+                            {
+                                continue;
+                            }
+
                             for(dx[1] = 0; dx[1] < SAMPLE_SIZE; dx[1]++)
                             {
                                 for(dy[1] = 0; dy[1] < SAMPLE_SIZE; dy[1]++)
                                 {
+                                    if (dx[1] == 0 && dy[1] == 0)
+                                    {
+                                        continue;
+                                    }
+
+                                    x[2] = x[1] + dx[1] * w;
+                                    y[2] = y[1] + dy[1] * h;
+
+                                    if (   x[2] >= SAMPLE_SIZE
+                                        || y[2] >= SAMPLE_SIZE
+                                        || x[2] + w > SAMPLE_SIZE
+                                        || y[2] + h > SAMPLE_SIZE)
+                                    {
+                                        continue;
+                                    }
+
                                     for(dx[2] = 0; dx[2] < SAMPLE_SIZE; dx[2]++)
                                     {
                                         for(dy[2] = 0; dy[2] < SAMPLE_SIZE; dy[2]++)
                                         {
                                             //avoids rectangle overlapping
-                                            if (   (dx[0] == 0 && dy[0] == 0)
-                                                || (dx[1] == 0 && dy[1] == 0))
+                                            if ( dx[2] == 0 && dy[2] == 0 )
                                             {
                                                 continue;
                                             }
 
-                                            //sets the values of the x, y position of the rectangles
-                                            for (int i = 1; i < K; i++)
+                                            x[3] = x[2] + dx[2] * w;
+                                            y[3] = y[2] + dy[2] * h;
+
+                                            if (   x[3] >= SAMPLE_SIZE
+                                                || y[3] >= SAMPLE_SIZE
+                                                || x[3] + w > SAMPLE_SIZE
+                                                || y[3] + h > SAMPLE_SIZE)
                                             {
-                                                x[i] = x[i-1] + dx[i-1] * w;
-                                                y[i] = y[i-1] + dy[i-1] * h;
+                                                continue;
                                             }
+
 
                                             {
                                                 bool overflow = false;
