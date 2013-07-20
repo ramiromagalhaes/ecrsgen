@@ -1,5 +1,6 @@
-#include <iostream>
 #include <string>
+#include <iostream>
+#include <fstream>
 
 #include <vector>
 #include <opencv2/core/core.hpp>
@@ -24,6 +25,12 @@
 
 
 
+inline void persistWavelet(HaarWavelet &wavelet, std::ostream &output)
+{
+    wavelet.write(output);
+}
+
+
 inline void persistWavelet(HaarWavelet &wavelet, cv::FileStorage &waveletStorage, int counter)
 {
     std::stringstream waveletEntityName;
@@ -37,7 +44,7 @@ inline void persistWavelet(HaarWavelet &wavelet, cv::FileStorage &waveletStorage
  * Generates Haar wavelets with 2 rectangles.
  */
 void gen2d(cv::Size * const sampleSize, cv::Point * const position,
-           cv::FileStorage &waveletStorage, int &counter)
+           std::ostream &output, int &counter)
 {
     std::vector<float> weights(2);
     weights[0] = 1;
@@ -88,7 +95,7 @@ void gen2d(cv::Size * const sampleSize, cv::Point * const position,
                             rects[1] = cv::Rect(xOther, yOther, w, h);
 
                             HaarWavelet wavelet(sampleSize, position, rects, weights);
-                            persistWavelet(wavelet, waveletStorage, counter);
+                            persistWavelet(wavelet, output);
                             counter++;
                         }
                     }
@@ -104,7 +111,7 @@ void gen2d(cv::Size * const sampleSize, cv::Point * const position,
  * Generates Haar wavelets with 3 rectangles.
  */
 void gen3d(cv::Size * const sampleSize, cv::Point * const position,
-           cv::FileStorage &waveletStorage, int &counter)
+           std::ostream &output, int &counter)
 {
     const int K = 3; //number of dimensions of the generated wavelets
 
@@ -189,7 +196,7 @@ void gen3d(cv::Size * const sampleSize, cv::Point * const position,
                                     }
 
                                     HaarWavelet wavelet(sampleSize, position, rects, weights);
-                                    persistWavelet(wavelet, waveletStorage, counter);
+                                    persistWavelet(wavelet, output);
                                     counter++;
                                 }
                             }
@@ -207,7 +214,7 @@ void gen3d(cv::Size * const sampleSize, cv::Point * const position,
  * Generates Haar wavelets with 4 rectangles.
  */
 void gen4d(cv::Size * const sampleSize, cv::Point * const position,
-           cv::FileStorage &waveletStorage, int &counter)
+           std::ostream &output, int &counter)
 {
     const int K = 4; //number of dimensions of the generated wavelets
 
@@ -332,7 +339,7 @@ void gen4d(cv::Size * const sampleSize, cv::Point * const position,
                                             }
 
                                             HaarWavelet wavelet(sampleSize, position, rects, weights);
-                                            persistWavelet(wavelet, waveletStorage, counter);
+                                            persistWavelet(wavelet, output);
                                             counter++;
                                         }
                                     }
@@ -357,14 +364,18 @@ int main(int argc, char * args[])
     cv::Size sampleSize(SAMPLE_SIZE, SAMPLE_SIZE); //size in pixels of the trainning images
     cv::Point position(0,0); //always like that during SRFS production
 
-    cv::FileStorage waveletStorage(args[1], cv::FileStorage::WRITE);
+    //cv::FileStorage waveletStorage(args[1], cv::FileStorage::WRITE);
+    std::ofstream ofs;
+    ofs.open(args[1], std::ofstream::out | std::ofstream::app);
 
     int generetedWaveletCounter = 0;
 
     //TODO generate in threads?
-    gen2d(&sampleSize, &position, waveletStorage, generetedWaveletCounter);
-    gen3d(&sampleSize, &position, waveletStorage, generetedWaveletCounter);
-    gen4d(&sampleSize, &position, waveletStorage, generetedWaveletCounter);
+    gen2d(&sampleSize, &position, ofs, generetedWaveletCounter);
+    gen3d(&sampleSize, &position, ofs, generetedWaveletCounter);
+    gen4d(&sampleSize, &position, ofs, generetedWaveletCounter);
+
+    ofs.close();
 
     std::cout << "Wavelets generated: " << generetedWaveletCounter << std::endl;
 
