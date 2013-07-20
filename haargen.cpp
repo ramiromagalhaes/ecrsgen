@@ -1,6 +1,5 @@
 #include <iostream>
 #include <string>
-#include <sstream>
 
 #include <vector>
 #include <opencv2/core/core.hpp>
@@ -10,49 +9,41 @@
 
 #define SAMPLE_SIZE 20
 #define MIN_RECT_SIZE 3
-#define MAX_DIMENSIONS 4
 
 
 
-int main(int argc, char * args[])
+/*
+ * Pavani's restrictions on Haar wavelets generation:
+ * 1) only 2 to 4 rectangles
+ * 2) detector size = 20x20
+ * 3) no rotated rectangles
+ * 4) disjoint rectangles are integer multiples of rectangle size
+ * 5) all rectangles in a HW have the same size
+ * 6) no rectangles smaller than 3x3
+ */
+
+
+
+inline void persistWavelet(HaarWavelet &wavelet, cv::FileStorage &waveletStorage, int counter)
 {
-    if (argc != 2) {
-        return 1;
-    }
+    std::stringstream waveletEntityName;
+    waveletEntityName << "wavelet" << counter; //opencv persistence sucks hard
+    waveletStorage << waveletEntityName.str();
+    wavelet.write(waveletStorage);
+}
 
-    cv::FileStorage waveletStorage(args[1], cv::FileStorage::WRITE);
 
-    cv::Point position(0,0); //always like that during SRFS production
-    cv::Size sampleSize(SAMPLE_SIZE, SAMPLE_SIZE); //size in pixels of the trainning images
+/**
+ * Generates Haar wavelets with 2 rectangles.
+ */
+void gen2d(cv::Size * const sampleSize, cv::Point * const position,
+           cv::FileStorage &waveletStorage, int &counter)
+{
+    std::vector<float> weights(2);
+    weights[0] = 1;
+    weights[1] = -1;
 
-    int generetedWaveletCounter = 0;
-
-    /*
-     * Pavani's restrictions:
-     * 1) only 2 to 4 rectangles
-     * 2) detector size = 20x20
-     * 3) no rotated rectangles
-     * 4) disjoint rectangles are integer multiples of rectangle size
-     * 5) all rectangles in a HW have the same size
-     * 6) no rectangles smaller than 3x3
-     */
-    std::vector<float> weights[3];
-    weights[0].resize(2);
-    weights[0][0] = -1;
-    weights[0][1] = 1;
-
-    //TODO the weights of wavelets of disconnected parts may be different
-    weights[1].resize(3);
-    weights[1][0] = -1;
-    weights[1][1] = 2;
-    weights[1][2] = -1;
-    weights[2].resize(4);
-    weights[2][0] = -1;
-    weights[2][1] = 1;
-    weights[2][2] = -1;
-    weights[2][3] = 1;
-
-    for(int w = 1; w <= SAMPLE_SIZE; w++) //width of both rectangles.
+    for(int w = 1; w <= SAMPLE_SIZE; w++) //width of both rectangles
     {
         for(int h = 1; h <= SAMPLE_SIZE; h++) //height of both rectangles
         {
@@ -60,43 +51,111 @@ int main(int argc, char * args[])
             {
                 continue;
             }
-            int x[MAX_DIMENSIONS], //x and y positions of each rectangle.
-                y[MAX_DIMENSIONS];
+
+            for(int x = 0; x <= SAMPLE_SIZE - w; x++) //x position of the first rectangle
+            {
+                for(int y = 0; y <= SAMPLE_SIZE - h; y++) //y position of the first rectangle
+                {
+                    if (   x + w > SAMPLE_SIZE
+                        || y + h > SAMPLE_SIZE)
+                    {
+                        continue;
+                    }
+
+                    for(int dx = 0; dx < SAMPLE_SIZE; dx++) //dx = horizontal displacement multiplier of the second rectangle.
+                    {                                                      //If bigger than 1 the rectangles will be disjoint. See Pavani's restriction #4.
+                        for(int dy = 0; dy < SAMPLE_SIZE; dy++) //dy is similar to dx but in the vertical direction
+                        {
+                            if (dx == 0 && dy == 0) //rectangles will overlap
+                            {
+                                continue;
+                            }
+
+                            const int xOther = x + dx * w;
+                            const int yOther = y + dy * h;
+
+                            if (   xOther >= SAMPLE_SIZE
+                                || yOther >= SAMPLE_SIZE
+                                || xOther + w > SAMPLE_SIZE
+                                || yOther + h > SAMPLE_SIZE)
+                            {
+                                continue;
+                            }
+
+                            //create the wavelet
+                            std::vector<cv::Rect> rects(2);
+                            rects[0] = cv::Rect(     x,      y, w, h);
+                            rects[1] = cv::Rect(xOther, yOther, w, h);
+
+                            HaarWavelet wavelet(sampleSize, position, rects, weights);
+                            persistWavelet(wavelet, waveletStorage, counter);
+                            counter++;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
+/**
+ * Generates Haar wavelets with 3 rectangles.
+ */
+void gen3d(cv::Size * const sampleSize, cv::Point * const position,
+           cv::FileStorage &waveletStorage, int &counter)
+{
+    const int K = 3; //number of dimensions of the generated wavelets
+
+    std::vector<float> weights(K);
+    weights[0] = 1;
+    weights[1] = -1;
+    weights[2] = 1;
+
+    for(int w = 1; w <= SAMPLE_SIZE; w++) //width of both rectangles
+    {
+        for(int h = 1; h <= SAMPLE_SIZE; h++) //height of both rectangles
+        {
+            if ( w * h < MIN_RECT_SIZE * MIN_RECT_SIZE ) //Check against Pavani's restriction #6
+            {
+                continue;
+            }
+
+            int x[K], //x and y positions of each rectangle.
+                y[K];
 
             for(x[0] = 0; x[0] <= SAMPLE_SIZE - w; x[0]++) //for each x...
             {
                 for(y[0] = 0; y[0] <= SAMPLE_SIZE - h; y[0]++) //...and y of the first rectangle...
                 {
-                    for(int k = 1; k < MAX_DIMENSIONS; k++) //...create Haar wavelets of 1 + k dimensions...
+                    if (   x[0] + w > SAMPLE_SIZE
+                        || y[0] + h > SAMPLE_SIZE)
                     {
-                        int dx[k], //dx[i] is the horizontal displacement multiplier of the rectangle i in relation to rectangle i - 1.
-                                   //If bigger than 1 the rectangles are disjoint. If equal to 1, they touch each other.
-                                   //Notice that the first rectangle doesn't need this parameter. See Pavani's restriction #4.
-                            dy[k]; //Same as dx, but in the vertical direction
+                        continue;
+                    }
 
-                        for(int d = 0; d < k; d++) //...where the rectangle d + 1 is (px, py) pixels away from rectangle's d upper left corner...
+                    int dx[K - 1], //dx = horizontal displacement multiplier of the second rectangle.
+                        dy[K - 1]; //If bigger than 1 the rectangles will be disjoint. See Pavani's restriction #4.
+                                   //dy is similar to dx but in the vertical direction
+
+                    for(dx[0] = 0; dx[0] < SAMPLE_SIZE; dx[0]++)
+                    {
+                        for(dy[0] = 0; dy[0] < SAMPLE_SIZE; dy[0]++)
                         {
-                            for(dx[d] = 0; dx[d] < SAMPLE_SIZE; dx[d]++) //dx displacement of rectangle d + 1 in regard to d
+                            for(dx[1] = 0; dx[1] < SAMPLE_SIZE; dx[1]++)
                             {
-                                for(dy[d] = 0; dy[d] < SAMPLE_SIZE; dy[d]++)  //dy displacement of rectangle d + 1 in regard to d
+                                for(dy[1] = 0; dy[1] < SAMPLE_SIZE; dy[1]++)
                                 {
+                                    //avoids rectangle overlapping
+                                    if (   (dx[0] == 0 && dy[0] == 0)
+                                        || (dx[1] == 0 && dy[1] == 0))
                                     {
-                                        bool overlap = false;
-                                        for (int i = 0; i < k; i++) //...as long as no rectangles overlap...
-                                        {
-                                            if (dx[i] == 0 && dy[i] == 0) //If both displacements == 0 the rectangles are overlaped.
-                                            {
-                                                overlap = true;
-                                                break;
-                                            }
-                                        }
-                                        if (overlap)
-                                        {
-                                            continue;
-                                        }
+                                        continue;
                                     }
 
-                                    for (int i = 1; i <= k; i++) //...where px[d+1] = dx[d] * w and py[d+1] = dy[d] * h (as per restriction #4)...
+                                    //sets the values of the x, y position of the rectangles
+                                    for (int i = 1; i < K; i++)
                                     {
                                         x[i] = x[i-1] + dx[i-1] * w;
                                         y[i] = y[i-1] + dy[i-1] * h;
@@ -104,12 +163,12 @@ int main(int argc, char * args[])
 
                                     {
                                         bool overflow = false;
-                                        for (int i = 0; i <= k; i++) //...and all rectangles fit into the sampling window...
+                                        for (int i = 1; i < K; i++) //...and all rectangles fit into the sampling window...
                                         {
-                                            if(x[i] >= SAMPLE_SIZE //x and y must be at least 1 pixel away from the window's last pixel
-                                                    || y[i] >= SAMPLE_SIZE
-                                                    || x[i] + w > SAMPLE_SIZE //and the rectangle must fully fit the window
-                                                    || y[i] + h > SAMPLE_SIZE)
+                                            if(    x[i] >= SAMPLE_SIZE //x and y must be at least 1 pixel away from the window's last pixel
+                                                || y[i] >= SAMPLE_SIZE
+                                                || x[i] + w > SAMPLE_SIZE //and the rectangle must fully fit the window
+                                                || y[i] + h > SAMPLE_SIZE)
                                             {
                                                 overflow = true;
                                                 break;
@@ -121,19 +180,17 @@ int main(int argc, char * args[])
                                         }
                                     }
 
-                                    //...then create the wavelet.
-                                    std::vector<cv::Rect> rects(1 + k);
-                                    for (int i = 0; i <= k; i++)
+
+                                    //create the wavelet
+                                    std::vector<cv::Rect> rects(K);
+                                    for (int i = 0; i < K; i++)
                                     {
                                         rects[i] = cv::Rect(x[i], y[i], w, h);
                                     }
 
-                                    HaarWavelet wavelet(&sampleSize, &position, rects, weights[k - 1]);
-                                    std::stringstream waveletEntityName;
-                                    waveletEntityName << "wavelet" << generetedWaveletCounter; //opencv persistence sucks hard
-                                    waveletStorage << waveletEntityName.str();
-                                    wavelet.write(waveletStorage);
-                                    generetedWaveletCounter++;
+                                    HaarWavelet wavelet(sampleSize, position, rects, weights);
+                                    persistWavelet(wavelet, waveletStorage, counter);
+                                    counter++;
                                 }
                             }
                         }
@@ -142,6 +199,136 @@ int main(int argc, char * args[])
             }
         }
     }
+}
+
+
+
+/**
+ * Generates Haar wavelets with 4 rectangles.
+ */
+void gen3d(cv::Size * const sampleSize, cv::Point * const position,
+           cv::FileStorage &waveletStorage, int &counter)
+{
+    const int K = 4; //number of dimensions of the generated wavelets
+
+    std::vector<float> weights(K);
+    weights[0] = 1;
+    weights[1] = -1;
+    weights[2] = 1;
+
+    for(int w = 1; w <= SAMPLE_SIZE; w++) //width of both rectangles
+    {
+        for(int h = 1; h <= SAMPLE_SIZE; h++) //height of both rectangles
+        {
+            if ( w * h < MIN_RECT_SIZE * MIN_RECT_SIZE ) //Check against Pavani's restriction #6
+            {
+                continue;
+            }
+
+            int x[K], //x and y positions of each rectangle.
+                y[K];
+
+            for(x[0] = 0; x[0] <= SAMPLE_SIZE - w; x[0]++) //for each x...
+            {
+                for(y[0] = 0; y[0] <= SAMPLE_SIZE - h; y[0]++) //...and y of the first rectangle...
+                {
+                    if (   x[0] + w > SAMPLE_SIZE
+                        || y[0] + h > SAMPLE_SIZE)
+                    {
+                        continue;
+                    }
+
+                    int dx[K - 1], //dx = horizontal displacement multiplier of the second rectangle.
+                        dy[K - 1]; //If bigger than 1 the rectangles will be disjoint. See Pavani's restriction #4.
+                                   //dy is similar to dx but in the vertical direction
+
+                    for(dx[0] = 0; dx[0] < SAMPLE_SIZE; dx[0]++)
+                    {
+                        for(dy[0] = 0; dy[0] < SAMPLE_SIZE; dy[0]++)
+                        {
+                            for(dx[1] = 0; dx[1] < SAMPLE_SIZE; dx[1]++)
+                            {
+                                for(dy[1] = 0; dy[1] < SAMPLE_SIZE; dy[1]++)
+                                {
+                                    for(dx[2] = 0; dx[2] < SAMPLE_SIZE; dx[2]++)
+                                    {
+                                        for(dy[2] = 0; dy[2] < SAMPLE_SIZE; dy[2]++)
+                                        {
+                                            //avoids rectangle overlapping
+                                            if (   (dx[0] == 0 && dy[0] == 0)
+                                                || (dx[1] == 0 && dy[1] == 0))
+                                            {
+                                                continue;
+                                            }
+
+                                            //sets the values of the x, y position of the rectangles
+                                            for (int i = 1; i < K; i++)
+                                            {
+                                                x[i] = x[i-1] + dx[i-1] * w;
+                                                y[i] = y[i-1] + dy[i-1] * h;
+                                            }
+
+                                            {
+                                                bool overflow = false;
+                                                for (int i = 1; i < K; i++) //...and all rectangles fit into the sampling window...
+                                                {
+                                                    if(    x[i] >= SAMPLE_SIZE //x and y must be at least 1 pixel away from the window's last pixel
+                                                        || y[i] >= SAMPLE_SIZE
+                                                        || x[i] + w > SAMPLE_SIZE //and the rectangle must fully fit the window
+                                                        || y[i] + h > SAMPLE_SIZE)
+                                                    {
+                                                        overflow = true;
+                                                        break;
+                                                    }
+                                                }
+                                                if(overflow)
+                                                {
+                                                    continue;
+                                                }
+                                            }
+
+
+                                            //create the wavelet
+                                            std::vector<cv::Rect> rects(K);
+                                            for (int i = 0; i < K; i++)
+                                            {
+                                                rects[i] = cv::Rect(x[i], y[i], w, h);
+                                            }
+
+                                            HaarWavelet wavelet(sampleSize, position, rects, weights);
+                                            persistWavelet(wavelet, waveletStorage, counter);
+                                            counter++;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
+int main(int argc, char * args[])
+{
+    if (argc != 2) {
+        return 1;
+    }
+
+    cv::Size sampleSize(SAMPLE_SIZE, SAMPLE_SIZE); //size in pixels of the trainning images
+    cv::Point position(0,0); //always like that during SRFS production
+
+    cv::FileStorage waveletStorage(args[1], cv::FileStorage::WRITE);
+
+    int generetedWaveletCounter = 0;
+
+    //TODO generate in threads?
+    gen2d(&sampleSize, &position, waveletStorage, generetedWaveletCounter);
+    gen3d(&sampleSize, &position, waveletStorage, generetedWaveletCounter);
+    gen4d(&sampleSize, &position, waveletStorage, generetedWaveletCounter);
 
     std::cout << "Wavelets generated: " << generetedWaveletCounter << std::endl;
 
