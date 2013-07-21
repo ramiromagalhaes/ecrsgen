@@ -11,7 +11,8 @@
 
 
 
-inline void printIntegral(cv::Mat & integralSum) {
+void printIntegral(cv::Mat & integralSum)
+{
     std::cout << std::endl;
     for (int i = 0; i < integralSum.rows; ++i) {
         for (int j = 0; j < integralSum.cols; ++j) {
@@ -21,7 +22,8 @@ inline void printIntegral(cv::Mat & integralSum) {
     }
 }
 
-inline void printImage(cv::Mat & image) {
+void printImage(cv::Mat & image)
+{
     std::cout << std::endl;
     for (int i = 0; i < image.rows; ++i) {
         for (int j = 0; j < image.cols; ++j) {
@@ -50,7 +52,7 @@ int main()
     cv::integral(image, integralSum, integralSquare);
 
     { //scope for first test
-        std::vector<double> srfs_vector;
+        std::vector<float> srfs_vector;
 
         HaarWavelet w(&s, &p, rects, weights);
         w.setIntegralImages(&integralSum, &integralSquare);
@@ -62,7 +64,7 @@ int main()
     }
 
     { //scope for second test
-        std::vector<double> srfs_vector;
+        std::vector<float> srfs_vector;
 
         cv::FileStorage fs("/home/ramiro/workspace/ecrsgen/haar.xml", cv::FileStorage::READ);
         cv::FileNode wavelets = fs.root();
@@ -80,7 +82,7 @@ int main()
     }
 
     { //scope for third test
-        std::vector<double> srfs_vector;
+        std::vector<float> srfs_vector;
 
         std::ifstream ifs;
         ifs.open("/home/ramiro/workspace/ecrsgen/haar.txt", std::ifstream::in);
