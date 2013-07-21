@@ -25,21 +25,6 @@
 
 
 
-inline void persistWavelet(HaarWavelet &wavelet, std::ostream &output)
-{
-    wavelet.write(output);
-}
-
-
-inline void persistWavelet(HaarWavelet &wavelet, cv::FileStorage &waveletStorage, int counter)
-{
-    std::stringstream waveletEntityName;
-    waveletEntityName << "wavelet" << counter; //opencv persistence sucks hard
-    waveletStorage << waveletEntityName.str();
-    wavelet.write(waveletStorage);
-}
-
-
 /**
  * Generates Haar wavelets with 2 rectangles.
  */
@@ -95,7 +80,7 @@ void gen2d(cv::Size * const sampleSize, cv::Point * const position,
                             rects[1] = cv::Rect(xOther, yOther, w, h);
 
                             HaarWavelet wavelet(sampleSize, position, rects, weights);
-                            persistWavelet(wavelet, output);
+                            wavelet.write(output);
                             counter++;
                         }
                     }
@@ -196,7 +181,7 @@ void gen3d(cv::Size * const sampleSize, cv::Point * const position,
                                     }
 
                                     HaarWavelet wavelet(sampleSize, position, rects, weights);
-                                    persistWavelet(wavelet, output);
+                                    wavelet.write(output);
                                     counter++;
                                 }
                             }
@@ -339,7 +324,7 @@ void gen4d(cv::Size * const sampleSize, cv::Point * const position,
                                             }
 
                                             HaarWavelet wavelet(sampleSize, position, rects, weights);
-                                            persistWavelet(wavelet, output);
+                                            wavelet.write(output);
                                             counter++;
                                         }
                                     }
@@ -364,13 +349,11 @@ int main(int argc, char * args[])
     cv::Size sampleSize(SAMPLE_SIZE, SAMPLE_SIZE); //size in pixels of the trainning images
     cv::Point position(0,0); //always like that during SRFS production
 
-    //cv::FileStorage waveletStorage(args[1], cv::FileStorage::WRITE);
     std::ofstream ofs;
     ofs.open(args[1], std::ofstream::out | std::ofstream::app);
 
     int generetedWaveletCounter = 0;
 
-    //TODO generate in threads?
     gen2d(&sampleSize, &position, ofs, generetedWaveletCounter);
     gen3d(&sampleSize, &position, ofs, generetedWaveletCounter);
     gen4d(&sampleSize, &position, ofs, generetedWaveletCounter);
