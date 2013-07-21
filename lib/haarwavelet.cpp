@@ -134,7 +134,7 @@ double HaarWavelet::value() const
     return returnValue;
 }
 
-void HaarWavelet::srfs(std::vector<double> & srfsVector) const
+void HaarWavelet::srfs(std::vector<float> &srfsVector) const
 {
     //TODO convert into exception
     assert(sum && squareSum && detectorPosition);

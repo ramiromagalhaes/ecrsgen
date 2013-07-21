@@ -50,7 +50,7 @@ public:
     /**
      * Sets the values of the single rectangle feature space.
      */
-    void srfs(std::vector<double> &srfsVector) const;
+    void srfs(std::vector<float> &srfsVector) const;
 
     /**
      * Writes this Haar wavelet into the given cv::FileStorage.
