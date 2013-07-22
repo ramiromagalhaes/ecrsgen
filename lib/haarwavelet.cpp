@@ -72,9 +72,9 @@ HaarWavelet::HaarWavelet(cv::Size * const detectorSize_,
 HaarWavelet::HaarWavelet(cv::Size * const detectorSize_,
                          cv::Point * const detectorPosition_,
                          std::istream &input) : scale(1),
-                                                            detectorSize(detectorSize_),
-                                                            detectorPosition(detectorPosition_),
-                                                            detector(0)
+                                                detectorSize(detectorSize_),
+                                                detectorPosition(detectorPosition_),
+                                                detector(0)
 {
     int rectangles;
     input >> rectangles;
@@ -85,9 +85,9 @@ HaarWavelet::HaarWavelet(cv::Size * const detectorSize_,
         cv::Rect rect;
 
         input >> rect.x
-                   >> rect.y
-                   >> rect.width
-                   >> rect.height;
+              >> rect.y
+              >> rect.width
+              >> rect.height;
         input >> weight;
 
         rects.push_back(rect);

@@ -1,134 +1,142 @@
-#include <iostream>
 #include <string>
+#include <iostream>
 #include <sstream>
+#include <fstream>
 
 #include <opencv2/core/core.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/objdetect/objdetect.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
-#include <boost/archive/text_iarchive.hpp>
-#include <boost/archive/text_oarchive.hpp>
-#include <boost/filesystem/fstream.hpp>
 #include <boost/filesystem.hpp>
 
 #include "lib/haarwavelet.h"
+#include "lib/haarwaveletutilities.h"
+
+
 
 #define SAMPLE_SIZE 20
 
-inline void loadWavelets(const std::string & waveletsFile, cv::Point & position, cv::Size & sampleSize, std::vector<HaarWavelet*> & wavelets)
+
+
+std::string srfsOutputFileName(HaarWavelet * wavelet)
 {
-    boost::filesystem::path archive( waveletsFile );
+    std::stringstream filename;
 
-    boost::filesystem::ifstream ifs( archive );
-    boost::archive::text_iarchive ia(ifs);
+    std::vector<cv::Rect>::const_iterator itRects = wavelet->rects_begin();
+    const std::vector<cv::Rect>::const_iterator endRects = wavelet->rects_end();
+    std::vector<float>::const_iterator itWeights = wavelet->weights_begin();
+    //const std::vector<float>::const_iterator endWeights = wavelet.weights_end();
 
-    std::vector<float> weights;
-    std::vector<cv::Rect> rects;
+    wavelet->write(filename);
+    filename << ".txt";
 
-    HaarWavelet * wavelet = new HaarWavelet(&sampleSize, &position, rects, weights);
-    wavelets.push_back(wavelet);
-
-    ifs.close();
+    return filename.str();
 }
 
-inline void loadSamples(const std::string & samplesDir, std::vector<std::string> & samples)
-{
-    boost::filesystem::path dir(samplesDir);
-    const boost::filesystem::directory_iterator end_iter;
-
-    if ( boost::filesystem::exists(dir) && boost::filesystem::is_directory(dir))
-    {
-        for( boost::filesystem::directory_iterator dir_iter(dir) ; dir_iter != end_iter ; ++dir_iter)
-        {
-            if ( boost::filesystem::is_regular_file(dir_iter->status()) )
-            {
-                samples.push_back(dir_iter->path().string());
-            }
-        }
-    }
-}
-
-inline void append_srfs(std::vector<double> & srfs_vector, std::string dir, std::string filename)
-{
-    boost::filesystem::path archive( dir );
-    archive = archive / filename;
-
-    boost::filesystem::ofstream ofs( archive );
-    boost::archive::text_oarchive oa(ofs);
-
-    bool not_first = false;
-    std::vector<double>::iterator srfsIt = srfs_vector.begin();
-    const std::vector<double>::iterator srfsEnd = srfs_vector.end();
-    for( ;srfsIt != srfsEnd; ++srfsIt)
-    {
-        if (not_first)
-        {
-            oa << " ";
-        }
-        else
-        {
-            not_first = true;
-        }
-        oa << *srfsIt;
-    }
-    std::cout << std::endl;
-
-    ofs.close();
-}
 
 
 int main(int argc, char* argv[])
 {
     if (argc != 4)
     {
+        std::cout << "Usage " << argv[0] << " " << " WAVELETS_FILE SAMPLES_DIR OUTPUT_DIR" << std::endl;
         return 1;
     }
 
-    const std::string waveletsFile = argv[1]; //load Haar wavelets from here
-    const std::string samplesDir = argv[2]; //load samples from here
-    const std::string outputDir = argv[3]; //write output here
+    const std::string waveletsFileName = argv[1]; //load Haar wavelets from here
+    const std::string samplesDirName = argv[2]; //load samples from here
+    const std::string outputDirName = argv[3]; //write output here
 
-    cv::Point position(0,0); //always like that during SRFS production
     cv::Size sampleSize(SAMPLE_SIZE, SAMPLE_SIZE); //size in pixels of the trainning images
+    cv::Point position(0,0); //always like that during SRFS production
 
 
 
-    std::vector<HaarWavelet*> wavelets; //list of haar wavelets
-    loadWavelets(waveletsFile, position, sampleSize, wavelets);
-
-    std::vector<std::string> samples; //samples files from here
-    loadSamples(samplesDir, samples);
-
-    //TODO crio/carrego uma lista de arquivos de saída
-    std::vector<std::string> outputs; //where I'll write the files
-
-
-
-    std::vector<std::string>::iterator samplesIt = samples.begin();
-    const std::vector<std::string>::iterator samplesEnd = samples.end();
-    for( ;samplesIt != samplesEnd; ++samplesIt)
+    //Load a list of Haar wavelets
+    std::cout << "Loading wavelets..." << std::endl;
+    std::vector<HaarWavelet*> wavelets;
+    if (!loadHaarWavelets(&sampleSize, &position, waveletsFileName, wavelets))
     {
-        cv::Mat sample = cv::imread(*samplesIt);
+        std::cout << "Unable to load Haar wavelets from file " << waveletsFileName << std::endl;
+        return 2;
+    }
+    std::cout << "Loading wavelets done." << std::endl;
 
-        cv::Mat integralSum(sample.rows + 1, sample.cols + 1, CV_32S);
-        cv::Mat integralSquare(sample.rows + 1, sample.cols + 1, CV_32S);
-        cv::integral(sample, integralSum, integralSquare, CV_32S);
+    //Check if the samples directory exist and is a directory
+    boost::filesystem::path samplesDir(samplesDirName);
+    if (!boost::filesystem::exists(samplesDir) || !boost::filesystem::is_directory(samplesDir))
+    {
+        std::cout << "Sample directory " << samplesDir << " does not exist or is not a directory." << std::endl;
+        return 3;
+    }
 
-        //para cada haar wavelet
-        std::vector<HaarWavelet*>::iterator waveletIt = wavelets.begin();
-        const std::vector<HaarWavelet*>::iterator waveletsEnd = wavelets.end();
-        for(int i = 0 ;waveletIt != waveletsEnd; ++waveletIt, ++i)
+    //Check if the output directory exist and is a directory
+    boost::filesystem::path outputDir(outputDirName);
+    if (!boost::filesystem::exists(samplesDir) || !boost::filesystem::is_directory(samplesDir))
+    {
+        std::cout << "Output directory " << samplesDir << " does not exist or is not a directory." << std::endl;
+        return 4;
+    }
+
+
+
+    std::cout << "Generating SRFS..." << std::endl;
+
+    std::vector<HaarWavelet*>::iterator waveletIt = wavelets.begin();
+    const std::vector<HaarWavelet*>::iterator waveletsEnd = wavelets.end();
+    for(; waveletIt != waveletsEnd; ++waveletIt)
+    {
+        HaarWavelet * wavelet = *waveletIt;
+
+        //Open/create an output file
+        std::string outputFileName = srfsOutputFileName(wavelet);
+        boost::filesystem::path outputPath = outputDir / outputFileName;
+        outputFileName = outputPath.string();
+        std::ofstream output(outputFileName.c_str(), std::ios::out | std::ios::app /*| std::ios::binary*/);
+        if (!output.is_open())
         {
-            std::vector<double> srfs_vector;
+            std::cout << "Could not open file " << outputFileName << " to append data." << std::endl;
+            return 5;
+        }
 
-            HaarWavelet * wavelet = *waveletIt;
+
+
+        //write the amount of rectangles first
+        output << wavelet->dimensions() << std::endl;
+
+        //For each sample image, produce the SRFS
+        const boost::filesystem::directory_iterator end_iter;
+        for( boost::filesystem::directory_iterator dir_iter(samplesDir) ; dir_iter != end_iter ; ++dir_iter)
+        {
+            if ( !boost::filesystem::is_regular_file(dir_iter->status()) )
+            {
+                continue;
+            }
+
+            //load the sample image...
+            const std::string samplename = dir_iter->path().string();
+            cv::Mat sample = cv::imread(samplename, CV_LOAD_IMAGE_GRAYSCALE); //TODO check if the image was loaded.
+            if (!sample.data)
+            {
+                std::cerr << "Failed to open file sample file " << samplename;
+                continue;
+            }
+            //...then set it up...
+            cv::Mat integralSum(sample.rows + 1, sample.cols + 1, CV_32S);
+            cv::Mat integralSquare(sample.rows + 1, sample.cols + 1, CV_32S);
+            cv::integral(sample, integralSum, integralSquare, CV_32S);
+            //...then produce the SRFS...
+            std::vector<float> srfs_vector(wavelet->dimensions());
             wavelet->setIntegralImages(&integralSum, &integralSquare);
             wavelet->srfs(srfs_vector);
-
-            std::stringstream filename;
-            filename << "srfs-haar-" << i << ".txt";
-            append_srfs(srfs_vector, samplesDir, filename.str());
+            //...and write the it to a file.
+            std::vector<float>::const_iterator itsrfs = srfs_vector.begin();
+            const std::vector<float>::const_iterator endsrfs = srfs_vector.end();
+            for(; itsrfs != endsrfs; ++itsrfs)
+            {
+                const float f = *itsrfs;
+                output << f << " ";
+            }
+            output << std::endl;
         }
     }
 
