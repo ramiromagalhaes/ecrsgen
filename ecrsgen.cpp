@@ -17,15 +17,12 @@
 
 
 
+/**
+ * Outputs a file name where the SRFS for the given haar wavelet will be stored.
+ */
 std::string srfsOutputFileName(HaarWavelet * wavelet)
 {
     std::stringstream filename;
-
-    std::vector<cv::Rect>::const_iterator itRects = wavelet->rects_begin();
-    const std::vector<cv::Rect>::const_iterator endRects = wavelet->rects_end();
-    std::vector<float>::const_iterator itWeights = wavelet->weights_begin();
-    //const std::vector<float>::const_iterator endWeights = wavelet.weights_end();
-
     wavelet->write(filename);
     filename << ".txt";
 
@@ -34,6 +31,12 @@ std::string srfsOutputFileName(HaarWavelet * wavelet)
 
 
 
+/**
+ * This program reads a Haar wavelets parameters file (produced by haargen), reads the images inside a
+ * directory and produce the SRFS for every Haar wavelet found in the wavelets parameter file using every
+ * image inside the directory. The program writes the SRFS for each Haar wavelet in an individual file
+ * that will be created or appended to in a provided output directory.
+ */
 int main(int argc, char* argv[])
 {
     if (argc != 4)
@@ -81,6 +84,8 @@ int main(int argc, char* argv[])
 
     std::cout << "Generating SRFS..." << std::endl;
 
+
+
     std::vector<HaarWavelet*>::iterator waveletIt = wavelets.begin();
     const std::vector<HaarWavelet*>::iterator waveletsEnd = wavelets.end();
     for(; waveletIt != waveletsEnd; ++waveletIt)
@@ -94,8 +99,8 @@ int main(int argc, char* argv[])
         std::ofstream output(outputFileName.c_str(), std::ios::out | std::ios::app /*| std::ios::binary*/);
         if (!output.is_open())
         {
-            std::cout << "Could not open file " << outputFileName << " to append data." << std::endl;
-            return 5;
+            std::err << "Could not open file " << outputFileName << " to append data. Will not try to generate a SRFS for the related wavelet." << std::endl;
+            continue;
         }
 
 
@@ -114,7 +119,7 @@ int main(int argc, char* argv[])
 
             //load the sample image...
             const std::string samplename = dir_iter->path().string();
-            cv::Mat sample = cv::imread(samplename, CV_LOAD_IMAGE_GRAYSCALE); //TODO check if the image was loaded.
+            cv::Mat sample = cv::imread(samplename, CV_LOAD_IMAGE_GRAYSCALE);
             if (!sample.data)
             {
                 std::cerr << "Failed to open file sample file " << samplename;
