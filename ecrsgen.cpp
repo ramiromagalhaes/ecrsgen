@@ -99,7 +99,7 @@ int main(int argc, char* argv[])
         std::ofstream output(outputFileName.c_str(), std::ios::out | std::ios::app /*| std::ios::binary*/);
         if (!output.is_open())
         {
-            std::err << "Could not open file " << outputFileName << " to append data. Will not try to generate a SRFS for the related wavelet." << std::endl;
+            std::cerr << "Could not open file " << outputFileName << " to append data. Will not try to generate a SRFS for the related wavelet." << std::endl;
             continue;
         }
 
