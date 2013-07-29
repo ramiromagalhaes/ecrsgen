@@ -9,9 +9,9 @@
 #include "lib/haarwavelet.h"
 
 #define SAMPLE_SIZE 20
-#define MIN_RECT_SIZE 3
 
-
+#define MIN_RECT_HEIGHT 3 //Minimum = 3 thanks to Pavani's restriction #6.
+#define MIN_RECT_WIDTH 3 //Minimum = 3 thanks to Pavani's restriction #6.
 
 /*
  * Pavani's restrictions on Haar wavelets generation:
@@ -35,15 +35,10 @@ void gen2d(cv::Size * const sampleSize, cv::Point * const position,
     weights[0] = 1;
     weights[1] = -1;
 
-    for(int w = 1; w <= SAMPLE_SIZE; w++) //width of both rectangles
+    for(int w = MIN_RECT_WIDTH; w <= SAMPLE_SIZE; w++)
     {
-        for(int h = 1; h <= SAMPLE_SIZE; h++) //height of both rectangles
+        for(int h = MIN_RECT_HEIGHT; h <= SAMPLE_SIZE; h++)
         {
-            if ( w * h < MIN_RECT_SIZE * MIN_RECT_SIZE ) //Check against Pavani's restriction #6
-            {
-                continue;
-            }
-
             for(int x = 0; x <= SAMPLE_SIZE - w; x++) //x position of the first rectangle
             {
                 for(int y = 0; y <= SAMPLE_SIZE - h; y++) //y position of the first rectangle
@@ -105,15 +100,10 @@ void gen3d(cv::Size * const sampleSize, cv::Point * const position,
     weights[1] = -1;
     weights[2] = 1;
 
-    for(int w = 1; w <= SAMPLE_SIZE; w++) //width of both rectangles
+    for(int w = MIN_RECT_WIDTH; w <= SAMPLE_SIZE; w++)
     {
-        for(int h = 1; h <= SAMPLE_SIZE; h++) //height of both rectangles
+        for(int h = MIN_RECT_HEIGHT; h <= SAMPLE_SIZE; h++)
         {
-            if ( w * h < MIN_RECT_SIZE * MIN_RECT_SIZE ) //Check against Pavani's restriction #6
-            {
-                continue;
-            }
-
             int x[K], //x and y positions of each rectangle.
                 y[K];
 
@@ -208,15 +198,10 @@ void gen4d(cv::Size * const sampleSize, cv::Point * const position,
     weights[1] = -1;
     weights[2] = 1;
 
-    for(int w = 1; w <= SAMPLE_SIZE; w++) //width of both rectangles
+    for(int w = MIN_RECT_WIDTH; w <= SAMPLE_SIZE; w++)
     {
-        for(int h = 1; h <= SAMPLE_SIZE; h++) //height of both rectangles
+        for(int h = MIN_RECT_HEIGHT; h <= SAMPLE_SIZE; h++)
         {
-            if ( w * h < MIN_RECT_SIZE * MIN_RECT_SIZE ) //Check against Pavani's restriction #6
-            {
-                continue;
-            }
-
             int x[K], //x and y positions of each rectangle.
                 y[K];
 
