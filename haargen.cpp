@@ -49,9 +49,9 @@ void gen2d(cv::Size * const sampleSize, cv::Point * const position,
                         continue;
                     }
 
-                    for(int dx = 0; dx < SAMPLE_SIZE; dx++) //dx = horizontal displacement multiplier of the second rectangle.
-                    {                                                      //If bigger than 1 the rectangles will be disjoint. See Pavani's restriction #4.
-                        for(int dy = 0; dy < SAMPLE_SIZE; dy++) //dy is similar to dx but in the vertical direction
+                    for(int dx = 0; dx < SAMPLE_SIZE / w; dx++) //dx = horizontal displacement multiplier of the second rectangle.
+                    {                                       //If bigger than 1 the rectangles will be disjoint. See Pavani's restriction #4.
+                        for(int dy = 0; dy < SAMPLE_SIZE / h; dy++) //dy is similar to dx but in the vertical direction
                         {
                             if (dx == 0 && dy == 0) //rectangles will overlap
                             {
@@ -121,13 +121,13 @@ void gen3d(cv::Size * const sampleSize, cv::Point * const position,
                         dy[K - 1]; //If bigger than 1 the rectangles will be disjoint. See Pavani's restriction #4.
                                    //dy is similar to dx but in the vertical direction
 
-                    for(dx[0] = 0; dx[0] < SAMPLE_SIZE; dx[0]++)
+                    for(dx[0] = 0; dx[0] < SAMPLE_SIZE / w; dx[0]++)
                     {
-                        for(dy[0] = 0; dy[0] < SAMPLE_SIZE; dy[0]++)
+                        for(dy[0] = 0; dy[0] < SAMPLE_SIZE / h; dy[0]++)
                         {
-                            for(dx[1] = 0; dx[1] < SAMPLE_SIZE; dx[1]++)
+                            for(dx[1] = 0; dx[1] < SAMPLE_SIZE / w; dx[1]++)
                             {
-                                for(dy[1] = 0; dy[1] < SAMPLE_SIZE; dy[1]++)
+                                for(dy[1] = 0; dy[1] < SAMPLE_SIZE / h; dy[1]++)
                                 {
                                     //avoids rectangle overlapping
                                     if (   (dx[0] == 0 && dy[0] == 0)
@@ -219,9 +219,9 @@ void gen4d(cv::Size * const sampleSize, cv::Point * const position,
                         dy[K - 1]; //If bigger than 1 the rectangles will be disjoint. See Pavani's restriction #4.
                                    //dy is similar to dx but in the vertical direction
 
-                    for(dx[0] = 0; dx[0] < SAMPLE_SIZE; dx[0]++)
+                    for(dx[0] = 0; dx[0] < SAMPLE_SIZE / w; dx[0]++)
                     {
-                        for(dy[0] = 0; dy[0] < SAMPLE_SIZE; dy[0]++)
+                        for(dy[0] = 0; dy[0] < SAMPLE_SIZE / h; dy[0]++)
                         {
                             if (dx[0] == 0 && dy[0] == 0)
                             {
@@ -239,9 +239,9 @@ void gen4d(cv::Size * const sampleSize, cv::Point * const position,
                                 continue;
                             }
 
-                            for(dx[1] = 0; dx[1] < SAMPLE_SIZE; dx[1]++)
+                            for(dx[1] = 0; dx[1] < SAMPLE_SIZE / w; dx[1]++)
                             {
-                                for(dy[1] = 0; dy[1] < SAMPLE_SIZE; dy[1]++)
+                                for(dy[1] = 0; dy[1] < SAMPLE_SIZE / h; dy[1]++)
                                 {
                                     if (dx[1] == 0 && dy[1] == 0)
                                     {
@@ -259,9 +259,9 @@ void gen4d(cv::Size * const sampleSize, cv::Point * const position,
                                         continue;
                                     }
 
-                                    for(dx[2] = 0; dx[2] < SAMPLE_SIZE; dx[2]++)
+                                    for(dx[2] = 0; dx[2] < SAMPLE_SIZE / w; dx[2]++)
                                     {
-                                        for(dy[2] = 0; dy[2] < SAMPLE_SIZE; dy[2]++)
+                                        for(dy[2] = 0; dy[2] < SAMPLE_SIZE / h; dy[2]++)
                                         {
                                             //avoids rectangle overlapping
                                             if ( dx[2] == 0 && dy[2] == 0 )
