@@ -34,6 +34,44 @@ typedef boost::unordered_map<int, HaarWavelet * > WaveletMap;
 
 
 
+struct wavelet_comparator {
+    bool operator()(HaarWavelet * w1, HaarWavelet * w2) const
+    {
+        return w1->dimensions() < w2->dimensions();
+    }
+};
+
+
+
+struct rect_comparator {
+    bool operator()(const cv::Rect &r1, const cv::Rect &r2) const
+    {
+        if (r1.x != r2.x)
+        {
+            return r1.x < r2.x;
+        }
+
+        if (r1.y != r2.y)
+        {
+            return r1.y < r2.y;
+        }
+
+        if (r1.width != r2.width)
+        {
+            return r1.width < r2.width;
+        }
+
+        if (r1.height != r2.height)
+        {
+            return r1.height < r2.width;
+        }
+
+        return false;
+    }
+};
+
+
+
 int hash(HaarWavelet * w)
 {
     const int primes[] = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71};
@@ -49,7 +87,6 @@ int hash(HaarWavelet * w)
     for(; it != end; ++it)
     {
         const cv::Rect r = *it;
-
         x[r.x]++;
         y[r.y]++;
         width[r.width]++;
@@ -68,7 +105,22 @@ int hash(HaarWavelet * w)
     wVal += (71*71*71*71*2);
     hVal += (71*71*71*71*3);
 
-    return xVal + yVal + wVal + hVal;
+    int base = 0;
+    switch (w->dimensions()) {
+        case 2:
+            base = 0;
+            break;
+        case 3:
+            base = 300000000;
+            break;
+        case 4:
+            base = 400000000;
+            break;
+        default:
+            break;
+    }
+
+    return base + xVal + yVal + wVal + hVal;
 }
 
 
@@ -82,6 +134,21 @@ void writeToFile(char * filename, WaveletMap &wavelets)
     for(; it != end; ++it)
     {
         it->second->write(ofs);
+    }
+    ofs.close();
+}
+
+
+
+void writeToFile(char * filename, std::vector<HaarWavelet * > &wavelets)
+{
+    std::ofstream ofs;
+    ofs.open(filename, std::ofstream::out | std::ofstream::trunc);
+    std::vector<HaarWavelet * >::const_iterator it = wavelets.begin();
+    const std::vector<HaarWavelet * >::const_iterator end = wavelets.end();
+    for(; it != end; ++it)
+    {
+        (*it)->write(ofs);
     }
     ofs.close();
 }
@@ -444,6 +511,7 @@ int main(int argc, char * args[])
     gen2d(&sampleSize, &position, wavelets);
     const int d2wavelets = wavelets.size();
     std::cout << "Total 2D wavelets generated: " << d2wavelets << std::endl;
+
     gen3d(&sampleSize, &position, wavelets);
     const int d3wavelets = wavelets.size() - d2wavelets;
     std::cout << "Total 3D wavelets generated: " << d3wavelets << std::endl;
@@ -452,9 +520,20 @@ int main(int argc, char * args[])
     std::cout << "Total 3D wavelets generated: " << d4wavelets << std::endl;
 
     std::cout << "Wavelets generated: " << wavelets.size() << std::endl;
+
+    std::vector<HaarWavelet * > sorted;
+
+    WaveletMap::iterator it = wavelets.begin();
+    const WaveletMap::iterator end = wavelets.end();
+    for(;it != end; ++it)
+    {
+        sorted.push_back(it->second);
+    }
+    std::sort(sorted.begin(), sorted.end(), wavelet_comparator());
+
     std::cout << "Writing wavelets to file...";
 
-    writeToFile(args[1], wavelets);
+    writeToFile(args[1], sorted);
 
     std::cout << " done." << std::endl;
 
