@@ -336,15 +336,26 @@ void gen3d(cv::Size * const sampleSize, cv::Point * const position, WaveletMap &
                                     }
 
                                     {//avoids rectangles overlapping
+                                        bool overlaps = false;
+
                                         for (int i = 0; i < K; i++)
                                         {
                                             for (int j = 0; j < K; j++)
                                             {
-                                                if (x[i] == x[j] && y[i] == y[j])
+                                                if (i != j && x[i] == x[j] && y[i] == y[j])
                                                 {
-                                                    continue;
+                                                    overlaps = true;
+                                                    break;
                                                 }
                                             }
+                                            if (overlaps)
+                                            {
+                                                break;
+                                            }
+                                        }
+                                        if (overlaps)
+                                        {
+                                            continue;
                                         }
                                     }
 
@@ -406,6 +417,7 @@ void gen4d(cv::Size * const sampleSize, cv::Point * const position, WaveletMap &
     weights[0] = 1;
     weights[1] = -1;
     weights[2] = 1;
+    weights[3] = -1;
 
     for(int w = MIN_RECT_WIDTH; w <= SAMPLE_SIZE; w++)
     {
@@ -485,19 +497,6 @@ void gen4d(cv::Size * const sampleSize, cv::Point * const position, WaveletMap &
                                             x[3] = x[2] + dx[2] * w;
                                             y[3] = y[2] + dy[2] * h;
 
-                                            {//avoids rectangles overlapping
-                                                for (int i = 0; i < K; i++)
-                                                {
-                                                    for (int j = 0; j < K; j++)
-                                                    {
-                                                        if (x[i] == x[j] && y[i] == y[j])
-                                                        {
-                                                            continue;
-                                                        }
-                                                    }
-                                                }
-                                            }
-
                                             if (   x[3] < 0
                                                 || y[3] < 0
                                                 || x[3] >= SAMPLE_SIZE
@@ -509,11 +508,37 @@ void gen4d(cv::Size * const sampleSize, cv::Point * const position, WaveletMap &
                                             }
 
 
+                                            {//avoids rectangles overlapping
+                                                bool overlaps = false;
+
+                                                for (int i = 0; i < K; i++)
+                                                {
+                                                    for (int j = 0; j < K; j++)
+                                                    {
+                                                        if (i != j && x[i] == x[j] && y[i] == y[j])
+                                                        {
+                                                            overlaps = true;
+                                                            break;
+                                                        }
+                                                    }
+                                                    if (overlaps)
+                                                    {
+                                                        break;
+                                                    }
+                                                }
+                                                if (overlaps)
+                                                {
+                                                    continue;
+                                                }
+                                            }
+
                                             {
                                                 bool overflow = false;
-                                                for (int i = 1; i < K; i++) //...and all rectangles fit into the sampling window...
+                                                for (int i = 0; i < K; i++) //...and all rectangles fit into the sampling window...
                                                 {
-                                                    if(    x[i] >= SAMPLE_SIZE //x and y must be at least 1 pixel away from the window's last pixel
+                                                    if(    x[i] < 0
+                                                        || y[i] < 0
+                                                        || x[i] >= SAMPLE_SIZE //x and y must be at least 1 pixel away from the window's last pixel
                                                         || y[i] >= SAMPLE_SIZE
                                                         || x[i] + w > SAMPLE_SIZE //and the rectangle must fully fit the window
                                                         || y[i] + h > SAMPLE_SIZE)
@@ -574,8 +599,8 @@ int main(int argc, char * args[])
         const int d3wavelets = wavelets.size() - d2wavelets;
         std::cout << "Total 3D wavelets generated: " << d3wavelets << std::endl;
         gen4d(&sampleSize, &position, wavelets);
-        const int d4wavelets = wavelets.size() - d3wavelets - d3wavelets;
-        std::cout << "Total 3D wavelets generated: " << d4wavelets << std::endl;
+        const int d4wavelets = wavelets.size() - d3wavelets - d2wavelets;
+        std::cout << "Total 4D wavelets generated: " << d4wavelets << std::endl;
         std::cout << "Wavelets generated: " << wavelets.size() << std::endl;
     }
 
