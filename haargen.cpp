@@ -34,6 +34,65 @@ typedef boost::unordered_map<int, HaarWavelet * > WaveletMap;
 
 
 
+bool hasOverlappingRectangles(const HaarWavelet * w1)
+{
+    std::vector<cv::Rect>::const_iterator it1 = w1->rects_begin();
+    const std::vector<cv::Rect>::const_iterator end1 = w1->rects_end();
+    for(; it1 != end1; ++it1)
+    {
+        std::vector<cv::Rect>::const_iterator it2 = w1->rects_begin();
+        const std::vector<cv::Rect>::const_iterator end2 = w1->rects_end();
+        for(int i = 0; it2 != end2; ++it2, ++i)
+        {
+            if (it1 != it2 && it1->x == it2->x && it1->y == it2->y && it1->width == it2->width && it1->height == it2->height)
+            {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+bool same(HaarWavelet * w1, HaarWavelet * w2)
+{
+    if (w1->dimensions() != w2->dimensions())
+    {
+        return false;
+    }
+
+    std::vector<int> compared;
+
+    std::vector<cv::Rect>::const_iterator it1 = w1->rects_begin();
+    const std::vector<cv::Rect>::const_iterator end1 = w1->rects_end();
+    for(; it1 != end1; ++it1)
+    {
+        const cv::Rect r1 = *it1;
+
+        std::vector<cv::Rect>::const_iterator it2 = w2->rects_begin();
+        const std::vector<cv::Rect>::const_iterator end2 = w2->rects_end();
+        for(int i = 0; it2 != end2; ++it2, ++i)
+        {
+            const cv::Rect r2 = *it2;
+            if (r1.x == r2.x && r1.y == r2.y && r1.width == r2.width && r1.height == r2.height)
+            {
+                std::vector<int>::iterator it_compared = compared.begin();
+                const std::vector<int>::iterator end_compared = compared.end();
+                for(; it_compared != end_compared; ++it_compared)
+                {
+                    if (*it_compared == i)
+                    {
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    return true;
+}
+
+
 struct wavelet_comparator {
     bool operator()(HaarWavelet * w1, HaarWavelet * w2) const
     {
@@ -507,35 +566,49 @@ int main(int argc, char * args[])
     cv::Point position(0,0); //always like that during SRFS production
 
     WaveletMap wavelets;
-
-    gen2d(&sampleSize, &position, wavelets);
-    const int d2wavelets = wavelets.size();
-    std::cout << "Total 2D wavelets generated: " << d2wavelets << std::endl;
-
-    gen3d(&sampleSize, &position, wavelets);
-    const int d3wavelets = wavelets.size() - d2wavelets;
-    std::cout << "Total 3D wavelets generated: " << d3wavelets << std::endl;
-    gen4d(&sampleSize, &position, wavelets);
-    const int d4wavelets = wavelets.size() - d3wavelets - d3wavelets;
-    std::cout << "Total 3D wavelets generated: " << d4wavelets << std::endl;
-
-    std::cout << "Wavelets generated: " << wavelets.size() << std::endl;
+    {
+        gen2d(&sampleSize, &position, wavelets);
+        const int d2wavelets = wavelets.size();
+        std::cout << "Total 2D wavelets generated: " << d2wavelets << std::endl;
+        gen3d(&sampleSize, &position, wavelets);
+        const int d3wavelets = wavelets.size() - d2wavelets;
+        std::cout << "Total 3D wavelets generated: " << d3wavelets << std::endl;
+        gen4d(&sampleSize, &position, wavelets);
+        const int d4wavelets = wavelets.size() - d3wavelets - d3wavelets;
+        std::cout << "Total 3D wavelets generated: " << d4wavelets << std::endl;
+        std::cout << "Wavelets generated: " << wavelets.size() << std::endl;
+    }
 
     std::vector<HaarWavelet * > sorted;
-
-    WaveletMap::iterator it = wavelets.begin();
-    const WaveletMap::iterator end = wavelets.end();
-    for(;it != end; ++it)
     {
-        sorted.push_back(it->second);
+        WaveletMap::iterator it = wavelets.begin();
+        const WaveletMap::iterator end = wavelets.end();
+        for(;it != end; ++it)
+        {
+            sorted.push_back(it->second);
+        }
+        std::sort(sorted.begin(), sorted.end(), wavelet_comparator());
     }
-    std::sort(sorted.begin(), sorted.end(), wavelet_comparator());
 
-    std::cout << "Writing wavelets to file...";
+    {
+       std::vector<HaarWavelet * >::iterator it = sorted.begin();
+       const std::vector<HaarWavelet * >::iterator end = sorted.end();
+       for(;it != end; ++it)
+       {
+           if (hasOverlappingRectangles(*it))
+           {
+               std::cout << "Overlaps ==> ";
+               (*it)->write(std::cout);
+               std::cout << std::endl;
+           }
+       }
+    }
 
-    writeToFile(args[1], sorted);
-
-    std::cout << " done." << std::endl;
+    {
+        std::cout << "Writing wavelets to file...";
+        writeToFile(args[1], sorted);
+        std::cout << " done." << std::endl;
+    }
 
     return 0;
 }
