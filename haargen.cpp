@@ -34,6 +34,30 @@ typedef boost::unordered_map<int, HaarWavelet * > WaveletMap;
 
 
 
+bool same(const cv::Rect &r1, const cv::Rect &r2) {
+    return r1.x      == r2.x
+        && r1.y      == r2.y
+        && r1.width  == r2.width
+        && r1.height == r2.height;
+}
+
+
+int contains(std::vector<cv::Rect>::const_iterator it, const std::vector<cv::Rect>::const_iterator end, const cv::Rect &r)
+{
+    int i = 0;
+
+    for(; it != end; ++it)
+    {
+        if (same(*it, r))
+        {
+            i++;
+        }
+    }
+
+    return i;
+}
+
+
 bool hasOverlappingRectangles(const HaarWavelet * w1)
 {
     std::vector<cv::Rect>::const_iterator it1 = w1->rects_begin();
@@ -42,9 +66,9 @@ bool hasOverlappingRectangles(const HaarWavelet * w1)
     {
         std::vector<cv::Rect>::const_iterator it2 = w1->rects_begin();
         const std::vector<cv::Rect>::const_iterator end2 = w1->rects_end();
-        for(int i = 0; it2 != end2; ++it2, ++i)
+        for(; it2 != end2; ++it2)
         {
-            if (it1 != it2 && it1->x == it2->x && it1->y == it2->y && it1->width == it2->width && it1->height == it2->height)
+            if (it1 != it2 && same(*it1, *it2))
             {
                 return true;
             }
@@ -54,6 +78,10 @@ bool hasOverlappingRectangles(const HaarWavelet * w1)
     return false;
 }
 
+
+/**
+ * 2 Haar wavelets will be the same if their dimensions and rects are the same.
+ */
 bool same(HaarWavelet * w1, HaarWavelet * w2)
 {
     if (w1->dimensions() != w2->dimensions())
@@ -61,31 +89,15 @@ bool same(HaarWavelet * w1, HaarWavelet * w2)
         return false;
     }
 
-    std::vector<int> compared;
-
     std::vector<cv::Rect>::const_iterator it1 = w1->rects_begin();
     const std::vector<cv::Rect>::const_iterator end1 = w1->rects_end();
     for(; it1 != end1; ++it1)
     {
-        const cv::Rect r1 = *it1;
-
         std::vector<cv::Rect>::const_iterator it2 = w2->rects_begin();
         const std::vector<cv::Rect>::const_iterator end2 = w2->rects_end();
-        for(int i = 0; it2 != end2; ++it2, ++i)
+        if ( contains(it2, end2, *it1) != 1) //assuming there is no repeated rectangles this is ok...
         {
-            const cv::Rect r2 = *it2;
-            if (r1.x == r2.x && r1.y == r2.y && r1.width == r2.width && r1.height == r2.height)
-            {
-                std::vector<int>::iterator it_compared = compared.begin();
-                const std::vector<int>::iterator end_compared = compared.end();
-                for(; it_compared != end_compared; ++it_compared)
-                {
-                    if (*it_compared == i)
-                    {
-                        break;
-                    }
-                }
-            }
+            return false;
         }
     }
 
@@ -627,6 +639,25 @@ int main(int argc, char * args[])
                std::cout << std::endl;
            }
        }
+    }
+
+    {
+        std::vector<HaarWavelet * >::iterator it = sorted.begin();
+        const std::vector<HaarWavelet * >::iterator end = sorted.end();
+        for(;it != end; ++it)
+        {
+            std::vector<HaarWavelet * >::iterator it2 = it + 1;
+            for(;it2 != end; ++it2)
+            {
+                if(same(*it, *it2))
+                {
+                    std::cout << "Repeats ==> ";
+                    (*it)->write(std::cout);
+                    std::cout << std::endl;
+                }
+            }
+        }
+
     }
 
     {
