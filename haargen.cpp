@@ -675,9 +675,9 @@ int main(int argc, char * args[])
             const std::vector<cv::Rect>::const_iterator endr = h->rects_end();
             for(; itr != endr; ++itr)
             {
-                if (itr->x >= 20 || itr->y >= 20)
+                if (itr->x >= 20 || itr->y >= 20 || itr->x < 0 || itr->y < 0 || itr->x + itr->width > 20 || itr->y + itr->height > 20 || itr->width < 3 || itr->height < 3)
                 {
-                    std::cout << "Overflows ==> ";
+                    std::cout << "Size problem ==> ";
                     (*it)->write(std::cout);
                     std::cout << std::endl;
                     break;
