@@ -134,7 +134,7 @@ struct rect_comparator {
 
         if (r1.height != r2.height)
         {
-            return r1.height < r2.width;
+            return r1.height < r2.height;
         }
 
         return false;
