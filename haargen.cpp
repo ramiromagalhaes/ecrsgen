@@ -664,6 +664,29 @@ int main(int argc, char * args[])
     }
     */
 
+    /*
+    {//double checks if any rect has x or y at position 20 or more
+        std::vector<HaarWavelet * >::iterator it = sorted.begin();
+        const std::vector<HaarWavelet * >::iterator end = sorted.end();
+        for(;it != end; ++it)
+        {
+            HaarWavelet * h = *it;
+            std::vector<cv::Rect>::const_iterator itr = h->rects_begin();
+            const std::vector<cv::Rect>::const_iterator endr = h->rects_end();
+            for(; itr != endr; ++itr)
+            {
+                if (itr->x >= 20 || itr->y >= 20)
+                {
+                    std::cout << "Overflows ==> ";
+                    (*it)->write(std::cout);
+                    std::cout << std::endl;
+                    break;
+                }
+            }
+        }
+    }
+    */
+
     {
         std::cout << "Writing wavelets to file...";
         writeToFile(args[1], sorted);
