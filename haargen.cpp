@@ -23,7 +23,7 @@
  * 1) only 2 to 4 rectangles
  * 2) detector size = 20x20
  * 3) no rotated rectangles
- * 4) disjoint rectangles are integer multiples of rectangle size
+ * 4) disjoint rectangles are away of each other an integer multiple of rectangle sizes
  * 5) all rectangles in a HW have the same size
  * 6) no rectangles smaller than 3x3
  */
@@ -211,7 +211,7 @@ void writeToFile(char * filename, WaveletMap &wavelets)
 
 
 
-void writeToFile(char * filename, std::vector<HaarWavelet * > &wavelets)
+void writeToFile(char * filename, const std::vector<HaarWavelet * > &wavelets)
 {
     std::ofstream ofs;
     ofs.open(filename, std::ofstream::out | std::ofstream::trunc);
@@ -616,6 +616,7 @@ int main(int argc, char * args[])
         std::cout << "Wavelets generated: " << wavelets.size() << std::endl;
     }
 
+    //sorts the wavelets
     std::vector<HaarWavelet * > sorted;
     {
         WaveletMap::iterator it = wavelets.begin();
@@ -627,7 +628,8 @@ int main(int argc, char * args[])
         std::sort(sorted.begin(), sorted.end(), wavelet_comparator());
     }
 
-    {
+    /*
+    {//double checks for wavelets with overlapping rectangles
        std::vector<HaarWavelet * >::iterator it = sorted.begin();
        const std::vector<HaarWavelet * >::iterator end = sorted.end();
        for(;it != end; ++it)
@@ -640,8 +642,10 @@ int main(int argc, char * args[])
            }
        }
     }
+    */
 
-    {
+    /*
+    {//double checks for repeated haar wavelets using brute force
         std::vector<HaarWavelet * >::iterator it = sorted.begin();
         const std::vector<HaarWavelet * >::iterator end = sorted.end();
         for(;it != end; ++it)
@@ -657,8 +661,8 @@ int main(int argc, char * args[])
                 }
             }
         }
-
     }
+    */
 
     {
         std::cout << "Writing wavelets to file...";
