@@ -48,7 +48,11 @@ target_link_libraries( test haarwavelet ${OpenCV_LIBS} )
 
 # The Haar wavelet generator
 add_executable( haargen "haargen.cpp" )
-target_link_libraries( haargen haarwavelet ${OpenCV_LIBS} )
+target_link_libraries( haargen haarwavelet ${OpenCV_LIBS} ${Boost_LIBRARIES})
+
+# The Haar wavelet checker
+add_executable( haarcheck "haarcheck.cpp" )
+target_link_libraries( haarcheck haarwavelet ${OpenCV_LIBS} )
 
 # The SRFS generator
 add_executable( ecrsgen "ecrsgen.cpp" )
