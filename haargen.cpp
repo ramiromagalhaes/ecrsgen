@@ -7,7 +7,7 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
-#include <boost/unordered_map.hpp>
+#include <boost/unordered_set.hpp>
 
 #include "lib/haarwavelet.h"
 
@@ -30,16 +30,13 @@
 
 
 
-typedef boost::unordered_map<int, HaarWavelet * > WaveletMap;
-
-
-
 bool same(const cv::Rect &r1, const cv::Rect &r2) {
     return r1.x      == r2.x
         && r1.y      == r2.y
         && r1.width  == r2.width
         && r1.height == r2.height;
 }
+
 
 
 int contains(std::vector<cv::Rect>::const_iterator it, const std::vector<cv::Rect>::const_iterator end, const cv::Rect &r)
@@ -58,51 +55,64 @@ int contains(std::vector<cv::Rect>::const_iterator it, const std::vector<cv::Rec
 }
 
 
-bool hasOverlappingRectangles(const HaarWavelet * w1)
+
+struct wavelet_equals : std::binary_function<HaarWavelet *, HaarWavelet *, bool>
 {
-    std::vector<cv::Rect>::const_iterator it1 = w1->rects_begin();
-    const std::vector<cv::Rect>::const_iterator end1 = w1->rects_end();
-    for(; it1 != end1; ++it1)
+    /**
+     * 2 Haar wavelets will be the same if their dimensions and rects are the same. The
+     * problem is that the list of rectangles are unordered and there might be repeated
+     * rectangles inside both wavelets (there should not be, though).
+     */
+    bool operator()(HaarWavelet * w1, HaarWavelet * w2) const
     {
-        std::vector<cv::Rect>::const_iterator it2 = w1->rects_begin();
-        const std::vector<cv::Rect>::const_iterator end2 = w1->rects_end();
-        for(; it2 != end2; ++it2)
-        {
-            if (it1 != it2 && same(*it1, *it2))
-            {
-                return true;
-            }
-        }
-    }
-
-    return false;
-}
-
-
-/**
- * 2 Haar wavelets will be the same if their dimensions and rects are the same.
- */
-bool same(HaarWavelet * w1, HaarWavelet * w2)
-{
-    if (w1->dimensions() != w2->dimensions())
-    {
-        return false;
-    }
-
-    std::vector<cv::Rect>::const_iterator it1 = w1->rects_begin();
-    const std::vector<cv::Rect>::const_iterator end1 = w1->rects_end();
-    for(; it1 != end1; ++it1)
-    {
-        std::vector<cv::Rect>::const_iterator it2 = w2->rects_begin();
-        const std::vector<cv::Rect>::const_iterator end2 = w2->rects_end();
-        if ( contains(it2, end2, *it1) != 1) //assuming there is no repeated rectangles this is ok...
+        if (w1->dimensions() != w2->dimensions())
         {
             return false;
         }
-    }
 
-    return true;
-}
+        const std::vector<cv::Rect>::const_iterator begin1 = w1->rects_begin();
+        const std::vector<cv::Rect>::const_iterator end1 = w1->rects_end();
+        const std::vector<cv::Rect>::const_iterator end2 = w2->rects_end();
+        std::vector<cv::Rect>::const_iterator it1 = w1->rects_begin();
+        for(; it1 != end1; ++it1)
+        {
+            const int amountOfThisRectangle = contains(begin1, end1, *it1);
+
+            std::vector<cv::Rect>::const_iterator it2 = w2->rects_begin();
+            if ( contains(it2, end2, *it1) != amountOfThisRectangle)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+};
+
+
+
+struct wavelet_hash : std::unary_function<HaarWavelet *, std::size_t>
+{
+    std::size_t operator()(HaarWavelet * w) const
+    {
+        std::size_t hashval = 0;
+
+        std::vector<cv::Rect>::const_iterator it = w->rects_begin();
+        const std::vector<cv::Rect>::const_iterator end = w->rects_end();
+        for(; it != end; ++it)
+        {
+            hashval += it->x * it->y * it->width * it->height;
+        }
+
+        hashval += 160000 * (w->dimensions() - 2);
+        return hashval;
+    }
+};
+
+
+
+typedef boost::unordered_set<HaarWavelet *, wavelet_hash, wavelet_equals/*, std::allocator<HaarWavelet * > */> WaveletMap;
+
 
 
 struct wavelet_comparator {
@@ -143,55 +153,24 @@ struct rect_comparator {
 
 
 
-int hash(HaarWavelet * w)
+bool hasOverlappingRectangles(const HaarWavelet * w1)
 {
-    const int primes[] = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71};
-    int x[SAMPLE_SIZE], y[SAMPLE_SIZE], width[SAMPLE_SIZE], height[SAMPLE_SIZE];
-
-    for(int i = 0; i < SAMPLE_SIZE; ++i)
+    std::vector<cv::Rect>::const_iterator it1 = w1->rects_begin();
+    const std::vector<cv::Rect>::const_iterator end1 = w1->rects_end();
+    for(; it1 != end1; ++it1)
     {
-        x[i] = y[i] = width[i] = height[i] = 0;
+        std::vector<cv::Rect>::const_iterator it2 = w1->rects_begin();
+        const std::vector<cv::Rect>::const_iterator end2 = w1->rects_end();
+        for(; it2 != end2; ++it2)
+        {
+            if (it1 != it2 && same(*it1, *it2))
+            {
+                return true;
+            }
+        }
     }
 
-    std::vector<cv::Rect>::const_iterator it = w->rects_begin();
-    const std::vector<cv::Rect>::const_iterator end = w->rects_end();
-    for(; it != end; ++it)
-    {
-        const cv::Rect r = *it;
-        x[r.x]++;
-        y[r.y]++;
-        width[r.width]++;
-        height[r.height]++;
-    }
-
-    int xVal = 1, yVal = 1, wVal = 1, hVal = 1;
-    for(int i = 0; i < SAMPLE_SIZE; ++i)
-    {
-        xVal *= pow(primes[i], x[i]);
-        yVal *= pow(primes[i], y[i]);
-        wVal *= pow(primes[i], width[i]);
-        hVal *= pow(primes[i], height[i]);
-    }
-    yVal += (71*71*71*71);
-    wVal += (71*71*71*71*2);
-    hVal += (71*71*71*71*3);
-
-    int base = 0;
-    switch (w->dimensions()) {
-        case 2:
-            base = 0;
-            break;
-        case 3:
-            base = 300000000;
-            break;
-        case 4:
-            base = 400000000;
-            break;
-        default:
-            break;
-    }
-
-    return base + xVal + yVal + wVal + hVal;
+    return false;
 }
 
 
@@ -204,7 +183,8 @@ void writeToFile(char * filename, WaveletMap &wavelets)
     const WaveletMap::const_iterator end = wavelets.end();
     for(; it != end; ++it)
     {
-        it->second->write(ofs);
+        HaarWavelet * h = *it;
+        h->write(ofs);
     }
     ofs.close();
 }
@@ -277,11 +257,7 @@ void gen2d(cv::Size * const sampleSize, cv::Point * const position, WaveletMap &
                             rects[1] = cv::Rect(xOther, yOther, w, h);
 
                             HaarWavelet * wavelet = new HaarWavelet(sampleSize, position, rects, weights);
-                            int whash = hash(wavelet);
-                            if (wavelets.find(whash) == wavelets.end())
-                            {
-                                wavelets[whash] = wavelet;
-                            }
+                            wavelets.insert( wavelet );
                         }
                     }
                 }
@@ -400,12 +376,8 @@ void gen3d(cv::Size * const sampleSize, cv::Point * const position, WaveletMap &
                                         rects[i] = cv::Rect(x[i], y[i], w, h);
                                     }
 
-                                    HaarWavelet * wavelet = new HaarWavelet(sampleSize, position, rects, weights);
-                                    int whash = hash(wavelet);
-                                    if (wavelets.find(whash) == wavelets.end())
-                                    {
-                                        wavelets[whash] = wavelet;
-                                    }
+                                    HaarWavelet * const wavelet = new HaarWavelet(sampleSize, position, rects, weights);
+                                    wavelets.insert( wavelet );
                                 }
                             }
                         }
@@ -573,12 +545,8 @@ void gen4d(cv::Size * const sampleSize, cv::Point * const position, WaveletMap &
                                                 rects[i] = cv::Rect(x[i], y[i], w, h);
                                             }
 
-                                            HaarWavelet * wavelet = new HaarWavelet(sampleSize, position, rects, weights);
-                                            int whash = hash(wavelet);
-                                            if (wavelets.find(whash) == wavelets.end())
-                                            {
-                                                wavelets[whash] = wavelet;
-                                            }
+                                            HaarWavelet * const wavelet = new HaarWavelet(sampleSize, position, rects, weights);
+                                            wavelets.insert( wavelet );
                                         }
                                     }
                                 }
@@ -607,13 +575,16 @@ int main(int argc, char * args[])
         gen2d(&sampleSize, &position, wavelets);
         const int d2wavelets = wavelets.size();
         std::cout << "Total 2D wavelets generated: " << d2wavelets << std::endl;
+        std::cout << "Load factor: " << wavelets.load_factor() << std::endl;
         gen3d(&sampleSize, &position, wavelets);
         const int d3wavelets = wavelets.size() - d2wavelets;
         std::cout << "Total 3D wavelets generated: " << d3wavelets << std::endl;
+        std::cout << "Load factor: " << wavelets.load_factor() << std::endl;
         gen4d(&sampleSize, &position, wavelets);
         const int d4wavelets = wavelets.size() - d3wavelets - d2wavelets;
         std::cout << "Total 4D wavelets generated: " << d4wavelets << std::endl;
         std::cout << "Wavelets generated: " << wavelets.size() << std::endl;
+        std::cout << "Load factor: " << wavelets.load_factor() << std::endl;
     }
 
     //sorts the wavelets
@@ -623,69 +594,11 @@ int main(int argc, char * args[])
         const WaveletMap::iterator end = wavelets.end();
         for(;it != end; ++it)
         {
-            sorted.push_back(it->second);
+            HaarWavelet * h = *it;
+            sorted.push_back(h);
         }
         std::sort(sorted.begin(), sorted.end(), wavelet_comparator());
     }
-
-    /*
-    {//double checks for wavelets with overlapping rectangles
-       std::vector<HaarWavelet * >::iterator it = sorted.begin();
-       const std::vector<HaarWavelet * >::iterator end = sorted.end();
-       for(;it != end; ++it)
-       {
-           if (hasOverlappingRectangles(*it))
-           {
-               std::cout << "Overlaps ==> ";
-               (*it)->write(std::cout);
-               std::cout << std::endl;
-           }
-       }
-    }
-    */
-
-    /*
-    {//double checks for repeated haar wavelets using brute force
-        std::vector<HaarWavelet * >::iterator it = sorted.begin();
-        const std::vector<HaarWavelet * >::iterator end = sorted.end();
-        for(;it != end; ++it)
-        {
-            std::vector<HaarWavelet * >::iterator it2 = it + 1;
-            for(;it2 != end; ++it2)
-            {
-                if(same(*it, *it2))
-                {
-                    std::cout << "Repeats ==> ";
-                    (*it)->write(std::cout);
-                    std::cout << std::endl;
-                }
-            }
-        }
-    }
-    */
-
-    /*
-    {//double checks if any rect has x or y at position 20 or more
-        std::vector<HaarWavelet * >::iterator it = sorted.begin();
-        const std::vector<HaarWavelet * >::iterator end = sorted.end();
-        for(;it != end; ++it)
-        {
-            HaarWavelet * h = *it;
-            std::vector<cv::Rect>::const_iterator itr = h->rects_begin();
-            const std::vector<cv::Rect>::const_iterator endr = h->rects_end();
-            for(; itr != endr; ++itr)
-            {
-                if (itr->x >= 20 || itr->y >= 20 || itr->x < 0 || itr->y < 0 || itr->x + itr->width > 20 || itr->y + itr->height > 20 || itr->width < 3 || itr->height < 3)
-                {
-                    std::cout << "Size problem ==> ";
-                    (*it)->write(std::cout);
-                    std::cout << std::endl;
-                    break;
-                }
-            }
-        }
-    }
-    */
 
     {
         std::cout << "Writing wavelets to file...";
