@@ -117,7 +117,12 @@ typedef boost::unordered_set<HaarWavelet *, wavelet_hash, wavelet_equals/*, std:
 struct wavelet_comparator {
     bool operator()(HaarWavelet * w1, HaarWavelet * w2) const
     {
-        return w1->dimensions() < w2->dimensions();
+        if (w1->dimensions() != w2->dimensions())
+        {
+            return w1->dimensions() < w2->dimensions();
+        }
+
+        return wavelet_hash()(w1) < wavelet_hash()(w2);
     }
 };
 
@@ -151,9 +156,9 @@ void gen2d(cv::Size * const sampleSize, cv::Point * const position, WaveletMap &
     {
         for(int h = MIN_RECT_HEIGHT; h <= SAMPLE_SIZE; h++)
         {
-            for(int x = 0; x <= SAMPLE_SIZE - w; x++) //x position of the first rectangle
+            for(int x = 0; x <= SAMPLE_SIZE - w; x+=2) //x position of the first rectangle
             {
-                for(int y = 0; y <= SAMPLE_SIZE - h; y++) //y position of the first rectangle
+                for(int y = 0; y <= SAMPLE_SIZE - h; y+=2) //y position of the first rectangle
                 {
                     if (   x + w > SAMPLE_SIZE
                         || y + h > SAMPLE_SIZE)
@@ -161,7 +166,7 @@ void gen2d(cv::Size * const sampleSize, cv::Point * const position, WaveletMap &
                         continue;
                     }
 
-                    for(int dx = -SAMPLE_SIZE - x / w; dx < SAMPLE_SIZE / w; dx++) //dx = horizontal displacement multiplier of the second rectangle.
+                    for(int dx = -SAMPLE_SIZE / w; dx < SAMPLE_SIZE / w; dx++) //dx = horizontal displacement multiplier of the second rectangle.
                     {                                           //If bigger than 1 the rectangles will be disjoint. See Pavani's restriction #4.
                         for(int dy = -SAMPLE_SIZE / h; dy < SAMPLE_SIZE / h; dy++) //dy is similar to dx but in the vertical direction
                         {
@@ -212,16 +217,16 @@ void gen3d(cv::Size * const sampleSize, cv::Point * const position, WaveletMap &
     weights[1] = -1;
     weights[2] = 1;
 
-    for(int w = MIN_RECT_WIDTH; w <= SAMPLE_SIZE; w++)
+    for(int w = MIN_RECT_WIDTH; w <= SAMPLE_SIZE; w+=2)
     {
-        for(int h = MIN_RECT_HEIGHT; h <= SAMPLE_SIZE; h++)
+        for(int h = MIN_RECT_HEIGHT; h <= SAMPLE_SIZE; h+=2)
         {
             int x[K], //x and y positions of each rectangle.
                 y[K];
 
-            for(x[0] = 0; x[0] <= SAMPLE_SIZE - w; x[0]++) //for each x...
+            for(x[0] = 0; x[0] <= SAMPLE_SIZE - w; x[0]+=2) //for each x...
             {
-                for(y[0] = 0; y[0] <= SAMPLE_SIZE - h; y[0]++) //...and y of the first rectangle...
+                for(y[0] = 0; y[0] <= SAMPLE_SIZE - h; y[0]+=2) //...and y of the first rectangle...
                 {
                     if (   x[0] + w > SAMPLE_SIZE
                         || y[0] + h > SAMPLE_SIZE)
@@ -342,9 +347,9 @@ void gen4d(cv::Size * const sampleSize, cv::Point * const position, WaveletMap &
             int x[K], //x and y positions of each rectangle.
                 y[K];
 
-            for(x[0] = 0; x[0] <= SAMPLE_SIZE - w; x[0]++) //for each x...
+            for(x[0] = 0; x[0] <= SAMPLE_SIZE - w; x[0]+=2) //for each x...
             {
-                for(y[0] = 0; y[0] <= SAMPLE_SIZE - h; y[0]++) //...and y of the first rectangle...
+                for(y[0] = 0; y[0] <= SAMPLE_SIZE - h; y[0]+=2) //...and y of the first rectangle...
                 {
                     if (   x[0] + w > SAMPLE_SIZE
                         || y[0] + h > SAMPLE_SIZE)
@@ -378,9 +383,9 @@ void gen4d(cv::Size * const sampleSize, cv::Point * const position, WaveletMap &
                                 continue;
                             }
 
-                            for(dx[1] = -SAMPLE_SIZE / w; dx[1] < SAMPLE_SIZE / w; dx[1]++)
+                            for(dx[1] = -SAMPLE_SIZE / w; dx[1] < SAMPLE_SIZE / w; dx[1]+=2)
                             {
-                                for(dy[1] = -SAMPLE_SIZE / h; dy[1] < SAMPLE_SIZE / h; dy[1]++)
+                                for(dy[1] = -SAMPLE_SIZE / h; dy[1] < SAMPLE_SIZE / h; dy[1]+=2)
                                 {
                                     if (dx[1] == 0 && dy[1] == 0)
                                     {
@@ -400,9 +405,9 @@ void gen4d(cv::Size * const sampleSize, cv::Point * const position, WaveletMap &
                                         continue;
                                     }
 
-                                    for(dx[2] = -SAMPLE_SIZE / w; dx[2] < SAMPLE_SIZE / w; dx[2]++)
+                                    for(dx[2] = -SAMPLE_SIZE / w; dx[2] < SAMPLE_SIZE / w; dx[2]+=2)
                                     {
-                                        for(dy[2] = -SAMPLE_SIZE / h; dy[2] < SAMPLE_SIZE / h; dy[2]++)
+                                        for(dy[2] = -SAMPLE_SIZE / h; dy[2] < SAMPLE_SIZE / h; dy[2]+=2)
                                         {
                                             //avoids rectangle overlapping
                                             if ( dx[2] == 0 && dy[2] == 0 )
@@ -507,16 +512,13 @@ int main(int argc, char * args[])
         gen2d(&sampleSize, &position, wavelets);
         const int d2wavelets = wavelets.size();
         std::cout << "Total 2D wavelets generated: " << d2wavelets << std::endl;
-        std::cout << "Load factor: " << wavelets.load_factor() << std::endl;
         gen3d(&sampleSize, &position, wavelets);
         const int d3wavelets = wavelets.size() - d2wavelets;
         std::cout << "Total 3D wavelets generated: " << d3wavelets << std::endl;
-        std::cout << "Load factor: " << wavelets.load_factor() << std::endl;
         gen4d(&sampleSize, &position, wavelets);
         const int d4wavelets = wavelets.size() - d3wavelets - d2wavelets;
         std::cout << "Total 4D wavelets generated: " << d4wavelets << std::endl;
         std::cout << "Wavelets generated: " << wavelets.size() << std::endl;
-        std::cout << "Load factor: " << wavelets.load_factor() << std::endl;
     }
 
     //sorts the wavelets
