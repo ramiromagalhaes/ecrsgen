@@ -251,9 +251,8 @@ int main(int argc, char * args[])
     }
 
 
-    /*
-    {//double checks for repeated haar wavelets using brute force
-        std::cout << "Checking duplicated rects..." << std::endl;
+    {//double checks for repeated rects in a haar wavelet through brute force
+        std::cout << "Checking duplicated rects in each haar wavelet..." << std::endl;
         std::vector<HaarWavelet * >::iterator it = wavelets.begin();
         const std::vector<HaarWavelet * >::iterator end = wavelets.end();
         for(;it != end; ++it)
@@ -270,7 +269,6 @@ int main(int argc, char * args[])
             }
         }
     }
-    */
 
     return 0;
 }
