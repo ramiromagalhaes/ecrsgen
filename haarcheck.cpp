@@ -2,7 +2,6 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
-#include <algorithm>
 #include <vector>
 
 #include <opencv2/core/core.hpp>

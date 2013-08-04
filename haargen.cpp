@@ -1,7 +1,6 @@
 #include <string>
 #include <iostream>
 #include <fstream>
-#include <algorithm>
 #include <vector>
 
 #include <opencv2/core/core.hpp>
@@ -121,73 +120,6 @@ struct wavelet_comparator {
         return w1->dimensions() < w2->dimensions();
     }
 };
-
-
-
-struct rect_comparator {
-    bool operator()(const cv::Rect &r1, const cv::Rect &r2) const
-    {
-        if (r1.x != r2.x)
-        {
-            return r1.x < r2.x;
-        }
-
-        if (r1.y != r2.y)
-        {
-            return r1.y < r2.y;
-        }
-
-        if (r1.width != r2.width)
-        {
-            return r1.width < r2.width;
-        }
-
-        if (r1.height != r2.height)
-        {
-            return r1.height < r2.height;
-        }
-
-        return false;
-    }
-};
-
-
-
-bool hasOverlappingRectangles(const HaarWavelet * w1)
-{
-    std::vector<cv::Rect>::const_iterator it1 = w1->rects_begin();
-    const std::vector<cv::Rect>::const_iterator end1 = w1->rects_end();
-    for(; it1 != end1; ++it1)
-    {
-        std::vector<cv::Rect>::const_iterator it2 = w1->rects_begin();
-        const std::vector<cv::Rect>::const_iterator end2 = w1->rects_end();
-        for(; it2 != end2; ++it2)
-        {
-            if (it1 != it2 && same(*it1, *it2))
-            {
-                return true;
-            }
-        }
-    }
-
-    return false;
-}
-
-
-
-void writeToFile(char * filename, WaveletMap &wavelets)
-{
-    std::ofstream ofs;
-    ofs.open(filename, std::ofstream::out | std::ofstream::trunc);
-    WaveletMap::const_iterator it = wavelets.begin();
-    const WaveletMap::const_iterator end = wavelets.end();
-    for(; it != end; ++it)
-    {
-        HaarWavelet * h = *it;
-        h->write(ofs);
-    }
-    ofs.close();
-}
 
 
 
