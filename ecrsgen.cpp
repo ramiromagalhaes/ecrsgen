@@ -86,6 +86,7 @@ int main(int argc, char* argv[])
 
 
 
+    //For each wavelet...
     std::vector<HaarWavelet*>::iterator waveletIt = wavelets.begin();
     const std::vector<HaarWavelet*>::iterator waveletsEnd = wavelets.end();
     for(; waveletIt != waveletsEnd; ++waveletIt)
@@ -107,6 +108,7 @@ int main(int argc, char* argv[])
 
         //write the amount of rectangles first
         output << wavelet->dimensions() << std::endl;
+
 
         //For each sample image, produce the SRFS
         const boost::filesystem::directory_iterator end_iter;
@@ -143,6 +145,10 @@ int main(int argc, char* argv[])
             }
             output << std::endl;
         }
+
+        output.close();
+
+        std::cout << "Wrote SRFS " << outputFileName << "." << std::endl;
     }
 
     return 0;
