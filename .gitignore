@@ -2,4 +2,4 @@
 .project
 CMakeLists.txt.user
 *.xml
-
+*.*lock*
