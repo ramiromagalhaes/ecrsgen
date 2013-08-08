@@ -106,10 +106,6 @@ int main(int argc, char* argv[])
 
 
 
-        //write the amount of rectangles first
-        output << wavelet->dimensions() << std::endl;
-
-
         //For each sample image, produce the SRFS
         const boost::filesystem::directory_iterator end_iter;
         for( boost::filesystem::directory_iterator dir_iter(samplesDir) ; dir_iter != end_iter ; ++dir_iter)
@@ -138,10 +134,20 @@ int main(int argc, char* argv[])
             //...and write the it to a file.
             std::vector<float>::const_iterator itsrfs = srfs_vector.begin();
             const std::vector<float>::const_iterator endsrfs = srfs_vector.end();
+
+            bool first = true;
             for(; itsrfs != endsrfs; ++itsrfs)
             {
+                if (first)
+                {
+                    first = false;
+                }
+                else
+                {
+                    output << " ";
+                }
                 const float f = *itsrfs;
-                output << f << " ";
+                output << f;
             }
             output << std::endl;
         }

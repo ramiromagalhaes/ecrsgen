@@ -87,8 +87,8 @@ HaarWavelet::HaarWavelet(cv::Size * const detectorSize_,
         input >> rect.x
               >> rect.y
               >> rect.width
-              >> rect.height;
-        input >> weight;
+              >> rect.height
+              >> weight;
 
         rects.push_back(rect);
         weights.push_back(weight);
@@ -193,14 +193,22 @@ bool HaarWavelet::write(std::ostream &output) const
 
     output << dimensions() << " ";
 
+    bool first = true;
     for (int i = 0; i < dimensions(); i++)
     {
-        output << " " << rects[i].x
-               << " " << rects[i].y
-               << " " << rects[i].width
-               << " " << rects[i].height
-               << " " << weights[i]
-               << " ";
+        if (first)
+        {
+            first = false;
+        }
+        else
+        {
+            output << " ";
+        }
+        output << rects[i].x << " "
+               << rects[i].y << " "
+               << rects[i].width << " "
+               << rects[i].height << " "
+               << weights[i];
     }
 
     return true;
