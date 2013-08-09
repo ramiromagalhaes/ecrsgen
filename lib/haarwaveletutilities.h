@@ -14,7 +14,7 @@ bool loadHaarWavelets(cv::Size * const sampleSize, cv::Point * const position, c
         return false;
     }
 
-    while(!ifs.eof())
+    while( !ifs.eof() )
     {
         HaarWavelet * wavelet = new HaarWavelet(sampleSize, position, ifs);
         wavelets.push_back(wavelet);

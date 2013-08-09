@@ -137,7 +137,7 @@ void writeToFile(char * filename, const std::vector<HaarWavelet * > &wavelets)
     for(; it != end; ++it)
     {
         (*it)->write(ofs);
-        ofs << std::endl;
+        ofs << '\n';
     }
     ofs.close();
 }

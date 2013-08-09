@@ -149,7 +149,7 @@ int main(int argc, char* argv[])
                 const float f = *itsrfs;
                 output << f;
             }
-            output << std::endl;
+            output << '\n';
         }
 
         output.close();
