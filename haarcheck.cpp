@@ -10,6 +10,7 @@
 #include <boost/unordered_set.hpp>
 
 #include "lib/haarwavelet.h"
+#include "lib/haarwaveletutilities.h"
 
 #define SAMPLE_SIZE 20
 
@@ -118,21 +119,9 @@ int main(int argc, char * args[])
 
     //load the wavelets
     std::vector<HaarWavelet * > wavelets;
-    {
-        std::cout << "Loading Haar wavelets from " << args[1] << std::endl;
-
-        std::ifstream ifs;
-        ifs.open(args[1], std::ifstream::in);
-
-        while(!ifs.eof())
-        {
-            HaarWavelet * wavelet = new HaarWavelet(&sampleSize, &position, ifs);
-            wavelets.push_back(wavelet);
-        }
-
-        ifs.close();
-        std::cout << "Loaded " << wavelets.size() << " wavelets." << std::endl;
-    }
+    std::cout << "Loading Haar wavelets from " << args[1] << std::endl;
+    loadHaarWavelets(&sampleSize, &position, args[1], wavelets);
+    std::cout << "Loaded " << wavelets.size() << " wavelets." << std::endl;
 
     //STATS
     int dimensions[3] = {0, 0, 0}; //2, 3 and 4 dimensions of the wavelets
