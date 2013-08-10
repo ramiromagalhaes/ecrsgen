@@ -82,6 +82,16 @@ public:
      */
     const std::vector<float>::const_iterator weights_end() const;
 
+    /**
+     * Returns the weight applied to a rectangle at position 'index'.
+     */
+    float weight(const int index) const;
+
+    /**
+     * Changes the value of the weight applied to a rectangle at position 'index' of the list of rectangles.
+     */
+    void weight(const int index, const float new_value);
+
 private:
 
     /**

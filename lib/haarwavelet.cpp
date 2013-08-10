@@ -234,6 +234,16 @@ const std::vector<float>::const_iterator HaarWavelet::weights_end() const
     return weights.end();
 }
 
+float HaarWavelet::weight(const int index) const
+{
+    return weights[index];
+}
+
+void HaarWavelet::weight(const int index, const float new_value)
+{
+    weights[index] = new_value;
+}
+
 inline double HaarWavelet::singleRectangleValue(const cv::Rect &rect, const cv::Point &position, const cv::Mat &s) const
 {
     double rectVal = 0;

@@ -9,6 +9,7 @@
 #include <boost/unordered_set.hpp>
 
 #include "lib/haarwavelet.h"
+#include "lib/haarwaveletutilities.h"
 
 #define SAMPLE_SIZE 20
 
@@ -125,22 +126,6 @@ struct wavelet_comparator {
         return wavelet_hash()(w1) < wavelet_hash()(w2);
     }
 };
-
-
-
-void writeToFile(char * filename, const std::vector<HaarWavelet * > &wavelets)
-{
-    std::ofstream ofs;
-    ofs.open(filename, std::ofstream::out | std::ofstream::trunc);
-    std::vector<HaarWavelet * >::const_iterator it = wavelets.begin();
-    const std::vector<HaarWavelet * >::const_iterator end = wavelets.end();
-    for(; it != end; ++it)
-    {
-        (*it)->write(ofs);
-        ofs << '\n';
-    }
-    ofs.close();
-}
 
 
 
@@ -537,7 +522,7 @@ int main(int argc, char * args[])
 
     {
         std::cout << "Writing wavelets to file...";
-        writeToFile(args[1], sorted);
+        writeHaarWavelets(args[1], sorted);
         std::cout << " done." << std::endl;
     }
 
