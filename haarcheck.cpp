@@ -114,13 +114,12 @@ int main(int argc, char * args[])
     }
 
     cv::Size sampleSize(SAMPLE_SIZE, SAMPLE_SIZE); //size in pixels of the trainning images
-    cv::Point position(0,0); //always like that during SRFS production
 
 
     //load the wavelets
     std::vector<HaarWavelet * > wavelets;
     std::cout << "Loading Haar wavelets from " << args[1] << std::endl;
-    loadHaarWavelets(&sampleSize, &position, args[1], wavelets);
+    loadHaarWavelets(&sampleSize, args[1], wavelets);
     std::cout << "Loaded " << wavelets.size() << " wavelets." << std::endl;
 
     //STATS

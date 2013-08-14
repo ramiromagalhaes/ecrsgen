@@ -54,7 +54,7 @@ int main()
     { //scope for first test
         std::vector<float> srfs_vector;
 
-        HaarWavelet w(&s, &p, rects, weights);
+        HaarWavelet w(&s, rects, weights);
         w.setIntegralImages(&integralSum, &integralSquare);
         w.srfs(srfs_vector);
 
@@ -70,7 +70,7 @@ int main()
         cv::FileNode wavelets = fs.root();
         cv::FileNodeIterator it = wavelets.begin();
 
-        HaarWavelet w(&s, &p, *it);
+        HaarWavelet w(&s, *it);
         w.setIntegralImages(&integralSum, &integralSquare);
         w.srfs(srfs_vector);
 
@@ -87,7 +87,7 @@ int main()
         std::ifstream ifs;
         ifs.open("/home/ramiro/workspace/ecrsgen/haar.txt", std::ifstream::in);
 
-        HaarWavelet w(&s, &p, ifs);
+        HaarWavelet w(&s, ifs);
         w.setIntegralImages(&integralSum, &integralSquare);
         w.srfs(srfs_vector);
 

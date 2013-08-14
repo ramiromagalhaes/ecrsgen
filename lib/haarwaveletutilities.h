@@ -4,7 +4,7 @@
 
 #include "haarwavelet.h"
 
-bool loadHaarWavelets(cv::Size * const sampleSize, cv::Point * const position, const std::string &filename, std::vector<HaarWavelet *> &wavelets)
+bool loadHaarWavelets(cv::Size * const sampleSize, const std::string &filename, std::vector<HaarWavelet *> &wavelets)
 {
     std::ifstream ifs;
     ifs.open(filename.c_str(), std::ifstream::in);
@@ -16,7 +16,7 @@ bool loadHaarWavelets(cv::Size * const sampleSize, cv::Point * const position, c
 
     do
     {
-        HaarWavelet * wavelet = new HaarWavelet(sampleSize, position, ifs);
+        HaarWavelet * wavelet = new HaarWavelet(sampleSize, ifs);
         if ( !ifs.eof() )
         {
             wavelets.push_back(wavelet);

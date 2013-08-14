@@ -50,14 +50,13 @@ int main(int argc, char* argv[])
     const std::string outputDirName = argv[3]; //write output here
 
     cv::Size sampleSize(SAMPLE_SIZE, SAMPLE_SIZE); //size in pixels of the trainning images
-    cv::Point position(0,0); //always like that during SRFS production
 
 
 
     //Load a list of Haar wavelets
     std::cout << "Loading wavelets..." << std::endl;
     std::vector<HaarWavelet*> wavelets;
-    if (!loadHaarWavelets(&sampleSize, &position, waveletsFileName, wavelets))
+    if (!loadHaarWavelets(&sampleSize, waveletsFileName, wavelets))
     {
         std::cout << "Unable to load Haar wavelets from file " << waveletsFileName << std::endl;
         return 2;

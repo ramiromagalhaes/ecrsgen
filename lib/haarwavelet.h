@@ -21,17 +21,17 @@ public:
     /**
      * "Raw" constructor for a Haar wavelet.
      */
-    HaarWavelet(cv::Size * const detectorSize_, cv::Point * const detectorPosition_, std::vector<cv::Rect> rects_, std::vector<float> weights_);
+    HaarWavelet(cv::Size * const detectorSize_, std::vector<cv::Rect> rects_, std::vector<float> weights_);
 
     /**
      * Constructs a Haar wavelet from a given cv::FileNode.
      */
-    HaarWavelet(cv::Size * const detectorSize_, cv::Point * const detectorPosition_, const cv::FileNode & node);
+    HaarWavelet(cv::Size * const detectorSize_, const cv::FileNode & node);
 
     /**
      * Constructs a Haar wavelet by reading a input stream.
      */
-    HaarWavelet(cv::Size * const detectorSize_, cv::Point * const detectorPosition_, std::istream &input);
+    HaarWavelet(cv::Size * const detectorSize_, std::istream &input);
 
     /**
      * Amount of rectangles this Haar wavelet has
@@ -40,7 +40,13 @@ public:
 
     //void setDetector(Detector * d_);
     //bool setPosition(cv::Point * pt);
-    bool setIntegralImages(cv::Mat * const sum_, cv::Mat * const squareSum_/*, cv::Mat * tilted*/);
+
+    /**
+     * Sets the integral images this Haar Wavelet will use to calculate values. It must receive the
+     * reference to the values of the rectangular section over which the Detector is currently
+     * iterating over.
+     */
+    bool setIntegralImages(cv::Mat * const sum_, cv::Mat * const squareSum_/*, cv::Mat * tilted*/); //TODO tilted wavelet
 
     /**
      * Returns the value of this Haar wavelet when applied to an image in a certain position
@@ -102,7 +108,7 @@ private:
     /**
      * Calculates the sum of pixels inside a rectangular area of the image.
      */
-    inline double singleRectangleValue(const cv::Rect &rect, const cv::Point &position, const cv::Mat &s) const;
+    inline double singleRectangleValue(const cv::Rect &rect, const cv::Mat &s) const;
 
     /**
      * Each rectangle and its associated weight of this Haar wavelet
@@ -116,23 +122,21 @@ private:
     float scale;
 
     /**
-     *Integral images: both simple sum and squareSum.
+     * Integral images: both simple sum and square sum. The Haar wavelet only receives the reference
+     * to the values of the rectangular section over which the Detector is currently iterating over.
      */
     cv::Mat * sum,
             * squareSum;
+    //TODO rotated sum and square sum
 
     /**
      *Size of the detector window
      */
-    cv::Size * const detectorSize;
+    cv::Size * const detectorSize; //TODO is this really necessary? Currently it is only used in sanity checks.
+                                   //The size and scale can be gathered from the Detector.
 
     /**
-     *The top x,y position of the detector window
-     */
-    cv::Point * const detectorPosition;
-
-    /**
-     *Holds a refernce for the detector that owns this Haar wavelet.
+     *Holds a reference for the detector that owns this Haar wavelet.
      */
     Detector * const detector;
 };

@@ -179,7 +179,7 @@ void gen2d(cv::Size * const sampleSize, cv::Point * const position, WaveletMap &
                             rects[0] = cv::Rect(     x,      y, w, h);
                             rects[1] = cv::Rect(xOther, yOther, w, h);
 
-                            HaarWavelet * wavelet = new HaarWavelet(sampleSize, position, rects, weights);
+                            HaarWavelet * wavelet = new HaarWavelet(sampleSize, rects, weights);
                             wavelets.insert( wavelet );
                         }
                     }
@@ -299,7 +299,7 @@ void gen3d(cv::Size * const sampleSize, cv::Point * const position, WaveletMap &
                                         rects[i] = cv::Rect(x[i], y[i], w, h);
                                     }
 
-                                    HaarWavelet * const wavelet = new HaarWavelet(sampleSize, position, rects, weights);
+                                    HaarWavelet * const wavelet = new HaarWavelet(sampleSize, rects, weights);
                                     wavelets.insert( wavelet );
                                 }
                             }
@@ -468,7 +468,7 @@ void gen4d(cv::Size * const sampleSize, cv::Point * const position, WaveletMap &
                                                 rects[i] = cv::Rect(x[i], y[i], w, h);
                                             }
 
-                                            HaarWavelet * const wavelet = new HaarWavelet(sampleSize, position, rects, weights);
+                                            HaarWavelet * const wavelet = new HaarWavelet(sampleSize, rects, weights);
                                             wavelets.insert( wavelet );
                                         }
                                     }
