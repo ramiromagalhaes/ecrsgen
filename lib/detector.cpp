@@ -27,9 +27,17 @@ bool Detector::setSubwindow(const int left, const int top)
     }
 
     const double area = currentRoi.area();
-    subwindowMean = (currentIntegralImage.at<int>(currentRoi.width, currentRoi.height) - currentIntegralImage.at<int>(0, 0)) / area;
+    subwindowMean = (currentIntegralImage.at<int>(0, 0)
+                    - currentIntegralImage.at<int>(0, currentRoi.width)
+                    - currentIntegralImage.at<int>(currentRoi.height, 0)
+                    + currentIntegralImage.at<int>(currentRoi.height, currentRoi.width)) / area;
+
     subwindowStdDeviation = sqrt(
-        subwindowMean * subwindowMean - (currentSquareIntegralImage.at<int>(currentRoi.width, currentRoi.height) - currentSquareIntegralImage.at<int>(0, 0)) / area
+        subwindowMean * subwindowMean - (currentSquareIntegralImage.at<int>(0, 0)
+                                            - currentSquareIntegralImage.at<int>(0, currentRoi.width)
+                                            - currentSquareIntegralImage.at<int>(currentRoi.height, 0)
+                                            + currentSquareIntegralImage.at<int>(currentRoi.height, currentRoi.width)
+                                         ) / area
     );
 
 //    const double normalized = (pixel - subwindowMean)/sqrt(subwindowVariance);
