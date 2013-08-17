@@ -246,10 +246,10 @@ inline double HaarWavelet::singleRectangleValue(const cv::Rect &rect, const cv::
     const int y_h = rect.y + rect.height;
 
     //TODO is there a faster implementation that avoids invoking s.at() functions? Maybe a pointer to the data?
-    rectVal += s.at<int>(rect.y, rect.x); // (x,     y)
-    rectVal -= s.at<int>(rect.y, x_w);    // (x + w, y)
-    rectVal -= s.at<int>(y_h, rect.x);    // (x,     y + h)
-    rectVal += s.at<int>(y_h, x_w);       // (x + w, y + h)
+    rectVal = s.at<int>(rect.y, rect.x)  // (x,     y)
+                - s.at<int>(rect.y, x_w) // (x + w, y)
+                - s.at<int>(y_h, rect.x) // (x,     y + h)
+                + s.at<int>(y_h, x_w);   // (x + w, y + h)
 
     return rectVal;
 }
