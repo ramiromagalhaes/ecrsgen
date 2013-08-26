@@ -45,17 +45,17 @@ HaarWavelet::HaarWavelet(cv::Size * const detectorSize_,
     cv::FileNodeIterator rectParamsIt = rectNode.begin();
     for(int i = 0; i < rectangles; i++)
     {
-        float weight;
-        cv::Rect rect;
+        float weight_;
+        cv::Rect rect_;
 
-        rectParamsIt >> rect.x
-                     >> rect.y
-                     >> rect.width
-                     >> rect.height;
-        rectParamsIt >> weight;
+        rectParamsIt >> rect_.x
+                     >> rect_.y
+                     >> rect_.width
+                     >> rect_.height;
+        rectParamsIt >> weight_;
 
-        rects.push_back(rect);
-        weights.push_back(weight);
+        rects.push_back(rect_);
+        weights.push_back(weight_);
     }
 }
 
@@ -74,17 +74,17 @@ HaarWavelet::HaarWavelet(cv::Size * const detectorSize_,
 
     for (int i = 0; i < rectangles; i++)
     {
-        float weight;
-        cv::Rect rect;
+        float weight_;
+        cv::Rect rect_;
 
-        input >> rect.x
-              >> rect.y
-              >> rect.width
-              >> rect.height
-              >> weight;
+        input >> rect_.x
+              >> rect_.y
+              >> rect_.width
+              >> rect_.height
+              >> weight_;
 
-        rects.push_back(rect);
-        weights.push_back(weight);
+        rects.push_back(rect_);
+        weights.push_back(weight_);
     }
 
 }
@@ -217,6 +217,11 @@ const std::vector<cv::Rect>::const_iterator HaarWavelet::rects_end() const
     return rects.end();
 }
 
+const cv::Rect HaarWavelet::rect(const int index) const
+{
+    return rects[index];
+}
+
 std::vector<float>::const_iterator HaarWavelet::weights_begin() const
 {
     return weights.begin();
@@ -237,19 +242,19 @@ void HaarWavelet::weight(const int index, const float new_value)
     weights[index] = new_value;
 }
 
-inline double HaarWavelet::singleRectangleValue(const cv::Rect &rect, const cv::Mat &s) const
+inline double HaarWavelet::singleRectangleValue(const cv::Rect &r, const cv::Mat &s) const
 {
     double rectVal = 0;
 
     //As per Lienhart, Maydt, 2002, section 2.2
-    const int x_w = rect.x + rect.width;
-    const int y_h = rect.y + rect.height;
+    const int x_w = r.x + r.width;
+    const int y_h = r.y + r.height;
 
-    //TODO is there a faster implementation that avoids invoking s.at() functions? Maybe a pointer to the data?
-    rectVal = s.at<int>(rect.y, rect.x)  // (x,     y)
-                - s.at<int>(rect.y, x_w) // (x + w, y)
-                - s.at<int>(y_h, rect.x) // (x,     y + h)
-                + s.at<int>(y_h, x_w);   // (x + w, y + h)
+    //TODO is there a faster implementation that avoids invoking s.at() functions? Maybe a pointer to the data? Check Mat::step1()
+    rectVal = s.at<int>(r.y, r.x)     // (x,     y)
+                - s.at<int>(r.y, x_w) // (x + w, y)
+                - s.at<int>(y_h, r.x) // (x,     y + h)
+                + s.at<int>(y_h, x_w);// (x + w, y + h)
 
     return rectVal;
 }

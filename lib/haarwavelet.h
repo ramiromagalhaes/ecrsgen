@@ -79,6 +79,11 @@ public:
     const std::vector<cv::Rect>::const_iterator rects_end() const;
 
     /**
+     * Returns the cv::Rect at position 'index'.
+     */
+    const cv::Rect rect(const int index) const;
+
+    /**
      * Returns a constant iterator...
      */
     std::vector<float>::const_iterator weights_begin() const;
@@ -108,7 +113,7 @@ private:
     /**
      * Calculates the sum of pixels inside a rectangular area of the image.
      */
-    inline double singleRectangleValue(const cv::Rect &rect, const cv::Mat &s) const;
+    inline double singleRectangleValue(const cv::Rect &r, const cv::Mat &s) const;
 
     /**
      * Each rectangle and its associated weight of this Haar wavelet
