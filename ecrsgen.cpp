@@ -81,6 +81,36 @@ int main(int argc, char* argv[])
 
 
 
+    std::cout << "Loading samples..." << std::endl;
+    std::vector<cv::Mat> integralSums, integralSquares;
+    const boost::filesystem::directory_iterator end_iter;
+    for( boost::filesystem::directory_iterator dir_iter(samplesDir) ; dir_iter != end_iter ; ++dir_iter)
+    {
+        if ( !boost::filesystem::is_regular_file(dir_iter->status()) )
+        {
+            std::cerr << dir_iter->path().native() << "is not a regular file." << std::endl;
+            continue;
+        }
+
+        const std::string samplename = dir_iter->path().string();
+        cv::Mat sample = cv::imread(samplename, CV_LOAD_IMAGE_GRAYSCALE);
+        if (!sample.data)
+        {
+            std::cerr << "Failed to open file sample file " << samplename;
+            continue;
+        }
+
+        cv::Mat integralSum(sample.rows + 1, sample.cols + 1, CV_64F);
+        cv::Mat integralSquare(sample.rows + 1, sample.cols + 1, CV_64F);
+        cv::integral(sample, integralSum, integralSquare, CV_64F);
+
+        integralSums.push_back(integralSum);
+        integralSquares.push_back(integralSquares);
+    }
+
+
+
+
     std::cout << "Generating SRFS..." << std::endl;
 
 
@@ -106,29 +136,11 @@ int main(int argc, char* argv[])
 
 
         //For each sample image, produce the SRFS
-        const boost::filesystem::directory_iterator end_iter;
-        for( boost::filesystem::directory_iterator dir_iter(samplesDir) ; dir_iter != end_iter ; ++dir_iter)
+        for( int i = 0; i < integralSums.size(); ++i )
         {
-            if ( !boost::filesystem::is_regular_file(dir_iter->status()) )
-            {
-                continue;
-            }
-
-            //load the sample image...
-            const std::string samplename = dir_iter->path().string();
-            cv::Mat sample = cv::imread(samplename, CV_LOAD_IMAGE_GRAYSCALE);
-            if (!sample.data)
-            {
-                std::cerr << "Failed to open file sample file " << samplename;
-                continue;
-            }
-            //...then set it up...
-            cv::Mat integralSum(sample.rows + 1, sample.cols + 1, CV_32S);
-            cv::Mat integralSquare(sample.rows + 1, sample.cols + 1, CV_32S);
-            cv::integral(sample, integralSum, integralSquare, CV_32S);
             //...then produce the SRFS...
             std::vector<float> srfs_vector(wavelet->dimensions());
-            wavelet->setIntegralImages(&integralSum, &integralSquare);
+            wavelet->setIntegralImages(&integralSums[i], &integralSquares[i]);
             wavelet->srfs(srfs_vector);
             //...and write the it to a file.
             std::vector<float>::const_iterator itsrfs = srfs_vector.begin();
