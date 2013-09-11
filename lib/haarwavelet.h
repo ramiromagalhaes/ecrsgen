@@ -113,7 +113,7 @@ private:
     /**
      * Calculates the sum of pixels inside a rectangular area of the image.
      */
-    inline double singleRectangleValue(const cv::Rect &r, const cv::Mat &s) const;
+    inline float singleRectangleValue(const cv::Rect &r, const cv::Mat &s) const;
 
     /**
      * Each rectangle and its associated weight of this Haar wavelet

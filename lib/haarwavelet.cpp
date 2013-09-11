@@ -1,6 +1,6 @@
 #include "haarwavelet.h"
 #include <assert.h>
-#include <climits>
+#include <limits>
 
 
 
@@ -138,12 +138,9 @@ void HaarWavelet::srfs(std::vector<float> &srfsVector) const
     for (int i = 0; i < dim; ++i)
     {
         srfsVector[i] = singleRectangleValue(rects[i], *sum);
-
-        //SRFS works with normalized means (Pavani et al., 2010, section 2.3).
-        srfsVector[i] /= (rects[i].size().height * rects[i].size().width * UCHAR_MAX);
+        srfsVector[i] /= (rects[i].size().height * rects[i].size().width * std::numeric_limits<unsigned char>::max());//SRFS works with normalized means (Pavani et al., 2010, section 2.3).
     }
 }
-
 
 /**
  * See also constructor that takes a cv::FileNode.
@@ -242,7 +239,7 @@ void HaarWavelet::weight(const int index, const float new_value)
     weights[index] = new_value;
 }
 
-inline double HaarWavelet::singleRectangleValue(const cv::Rect &r, const cv::Mat &s) const
+inline float HaarWavelet::singleRectangleValue(const cv::Rect &r, const cv::Mat &s) const
 {
     double rectVal = 0;
 
@@ -251,10 +248,10 @@ inline double HaarWavelet::singleRectangleValue(const cv::Rect &r, const cv::Mat
     const int y_h = r.y + r.height;
 
     //TODO is there a faster implementation that avoids invoking s.at() functions? Maybe a pointer to the data? Check Mat::step1()
-    rectVal = s.at<int>(r.y, r.x)     // (x,     y)
-                - s.at<int>(r.y, x_w) // (x + w, y)
-                - s.at<int>(y_h, r.x) // (x,     y + h)
-                + s.at<int>(y_h, x_w);// (x + w, y + h)
+    rectVal = s.at<double>(r.y, r.x)     // (x,     y)
+                - s.at<double>(r.y, x_w) // (x + w, y)
+                - s.at<double>(y_h, r.x) // (x,     y + h)
+                + s.at<double>(y_h, x_w);// (x + w, y + h)
 
     return rectVal;
 }
