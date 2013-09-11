@@ -153,7 +153,8 @@ int main(int argc, char* argv[])
 
         output.close();
 
-        std::cout << "Wrote SRFS " << outputFileName << "." << std::endl;
+        std::cout << "\r Wrote " << (int)(waveletIt - wavelets.begin()) << " of " << wavelets.size() << " SRFSs.";
+        std::cout.flush();
     }
 
     return 0;
