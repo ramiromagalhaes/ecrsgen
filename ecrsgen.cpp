@@ -61,7 +61,7 @@ int main(int argc, char* argv[])
         std::cout << "Unable to load Haar wavelets from file " << waveletsFileName << std::endl;
         return 2;
     }
-    std::cout << "Loading wavelets done." << std::endl;
+    std::cout << wavelets.size() << " wavelets loaded." << std::endl;
 
     //Check if the samples directory exist and is a directory
     boost::filesystem::path samplesDir(samplesDirName);
@@ -105,8 +105,9 @@ int main(int argc, char* argv[])
         cv::integral(sample, integralSum, integralSquare, CV_64F);
 
         integralSums.push_back(integralSum);
-        integralSquares.push_back(integralSquares);
+        integralSquares.push_back(integralSquare);
     }
+    std::cout << integralSums.size() << "samples loaded." << std::endl;
 
 
 
@@ -135,13 +136,14 @@ int main(int argc, char* argv[])
 
 
 
+        std::vector<float> srfs_vector(wavelet->dimensions());
+
         //For each sample image, produce the SRFS
         for( int i = 0; i < integralSums.size(); ++i )
         {
-            //...then produce the SRFS...
-            std::vector<float> srfs_vector(wavelet->dimensions());
             wavelet->setIntegralImages(&integralSums[i], &integralSquares[i]);
             wavelet->srfs(srfs_vector);
+
             //...and write the it to a file.
             std::vector<float>::const_iterator itsrfs = srfs_vector.begin();
             const std::vector<float>::const_iterator endsrfs = srfs_vector.end();
