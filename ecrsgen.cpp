@@ -8,8 +8,8 @@
 
 #include <boost/filesystem.hpp>
 
-#include "lib/haarwavelet.h"
-#include "lib/haarwaveletutilities.h"
+#include "haarwavelet.h"
+#include "haarwaveletutilities.h"
 
 
 
@@ -139,7 +139,7 @@ int main(int argc, char* argv[])
         std::vector<float> srfs_vector(wavelet->dimensions());
 
         //For each sample image, produce the SRFS
-        for( int i = 0; i < integralSums.size(); ++i )
+        for( unsigned int i = 0; i < integralSums.size(); ++i )
         {
             wavelet->setIntegralImages(&integralSums[i], &integralSquares[i]);
             wavelet->srfs(srfs_vector);

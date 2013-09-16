@@ -9,8 +9,8 @@
 
 #include <boost/unordered_set.hpp>
 
-#include "lib/haarwavelet.h"
-#include "lib/haarwaveletutilities.h"
+#include "haarwavelet.h"
+#include "haarwaveletutilities.h"
 
 #define SAMPLE_SIZE 20
 

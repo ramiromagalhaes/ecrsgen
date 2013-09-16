@@ -37,23 +37,18 @@ endif(WIN32)
 
 
 
-# Builds the common objects of my Haar wavelet library
-file( GLOB LIB_SOURCES lib/*.cpp )
-file( GLOB LIB_HEADERS lib/*.h )
-add_library( haarwavelet ${LIB_SOURCES} ${LIB_HEADERS} )
-
-# A simple test program
-add_executable( test "test.cpp" )
-target_link_libraries( test haarwavelet ${OpenCV_LIBS} )
+# Include the haarcommon and link against it
+include_directories( /home/ramiro/workspace/haarcommon/ )
+link_directories( /home/ramiro/workspace/haarcommon-build/ )
 
 # The Haar wavelet generator
 add_executable( haargen "haargen.cpp" )
-target_link_libraries( haargen haarwavelet ${OpenCV_LIBS} ${Boost_LIBRARIES})
+target_link_libraries( haargen haarcommon ${OpenCV_LIBS} ${Boost_LIBRARIES})
 
 # The Haar wavelet checker
 add_executable( haarcheck "haarcheck.cpp" )
-target_link_libraries( haarcheck haarwavelet ${OpenCV_LIBS} )
+target_link_libraries( haarcheck haarcommon ${OpenCV_LIBS} )
 
 # The SRFS generator
 add_executable( ecrsgen "ecrsgen.cpp" )
-target_link_libraries( ecrsgen haarwavelet ${OpenCV_LIBS} ${Boost_LIBRARIES} )
+target_link_libraries( ecrsgen haarcommon ${OpenCV_LIBS} ${Boost_LIBRARIES} )
