@@ -56,29 +56,29 @@ int contains(std::vector<cv::Rect>::const_iterator it, const std::vector<cv::Rec
 
 
 
-struct wavelet_equals : std::binary_function<HaarWavelet *, HaarWavelet *, bool>
+struct wavelet_equals : std::binary_function<const HaarWavelet &, const HaarWavelet &, bool>
 {
     /**
      * 2 Haar wavelets will be the same if their dimensions and rects are the same. The
      * problem is that the list of rectangles are unordered and there might be repeated
      * rectangles inside both wavelets (there should not be, though).
      */
-    bool operator()(HaarWavelet * w1, HaarWavelet * w2) const
+    bool operator()(const HaarWavelet & w1, const HaarWavelet & w2) const
     {
-        if (w1->dimensions() != w2->dimensions())
+        if (w1.dimensions() != w2.dimensions())
         {
             return false;
         }
 
-        const std::vector<cv::Rect>::const_iterator begin1 = w1->rects_begin();
-        const std::vector<cv::Rect>::const_iterator end1 = w1->rects_end();
-        const std::vector<cv::Rect>::const_iterator end2 = w2->rects_end();
-        std::vector<cv::Rect>::const_iterator it1 = w1->rects_begin();
+        const std::vector<cv::Rect>::const_iterator begin1 = w1.rects_begin();
+        const std::vector<cv::Rect>::const_iterator end1 = w1.rects_end();
+        const std::vector<cv::Rect>::const_iterator end2 = w2.rects_end();
+        std::vector<cv::Rect>::const_iterator it1 = w1.rects_begin();
         for(; it1 != end1; ++it1)
         {
             const int amountOfThisRectangle = contains(begin1, end1, *it1);
 
-            std::vector<cv::Rect>::const_iterator it2 = w2->rects_begin();
+            std::vector<cv::Rect>::const_iterator it2 = w2.rects_begin();
             if ( contains(it2, end2, *it1) != amountOfThisRectangle)
             {
                 return false;
@@ -91,36 +91,36 @@ struct wavelet_equals : std::binary_function<HaarWavelet *, HaarWavelet *, bool>
 
 
 
-struct wavelet_hash : std::unary_function<HaarWavelet *, std::size_t>
+struct wavelet_hash : std::unary_function<const HaarWavelet &, std::size_t>
 {
-    std::size_t operator()(HaarWavelet * w) const
+    std::size_t operator()(const HaarWavelet & w) const
     {
         std::size_t hashval = 0;
 
-        std::vector<cv::Rect>::const_iterator it = w->rects_begin();
-        const std::vector<cv::Rect>::const_iterator end = w->rects_end();
+        std::vector<cv::Rect>::const_iterator it = w.rects_begin();
+        const std::vector<cv::Rect>::const_iterator end = w.rects_end();
         for(; it != end; ++it)
         {
             hashval += it->x * it->y * it->width * it->height;
         }
 
-        hashval += 160000 * (w->dimensions() - 2);
+        hashval += 160000 * (w.dimensions() - 2);
         return hashval;
     }
 };
 
 
 
-typedef boost::unordered_set<HaarWavelet *, wavelet_hash, wavelet_equals/*, std::allocator<HaarWavelet * > */> WaveletMap;
+typedef boost::unordered_set<HaarWavelet, wavelet_hash, wavelet_equals> WaveletMap;
 
 
 
 struct wavelet_comparator {
-    bool operator()(HaarWavelet * w1, HaarWavelet * w2) const
+    bool operator()(const HaarWavelet & w1, const HaarWavelet & w2) const
     {
-        if (w1->dimensions() != w2->dimensions())
+        if (w1.dimensions() != w2.dimensions())
         {
-            return w1->dimensions() < w2->dimensions();
+            return w1.dimensions() < w2.dimensions();
         }
 
         return wavelet_hash()(w1) < wavelet_hash()(w2);
@@ -132,7 +132,7 @@ struct wavelet_comparator {
 /**
  * Generates Haar wavelets with 2 rectangles.
  */
-void gen2d(cv::Size * const sampleSize, cv::Point * const position, WaveletMap &wavelets)
+void gen2d(WaveletMap &wavelets)
 {
     std::vector<float> weights(2);
     weights[0] = 1;
@@ -179,7 +179,7 @@ void gen2d(cv::Size * const sampleSize, cv::Point * const position, WaveletMap &
                             rects[0] = cv::Rect(     x,      y, w, h);
                             rects[1] = cv::Rect(xOther, yOther, w, h);
 
-                            HaarWavelet * wavelet = new HaarWavelet(sampleSize, rects, weights);
+                            HaarWavelet wavelet(rects, weights);
                             wavelets.insert( wavelet );
                         }
                     }
@@ -194,7 +194,7 @@ void gen2d(cv::Size * const sampleSize, cv::Point * const position, WaveletMap &
 /**
  * Generates Haar wavelets with 3 rectangles.
  */
-void gen3d(cv::Size * const sampleSize, cv::Point * const position, WaveletMap &wavelets)
+void gen3d(WaveletMap &wavelets)
 {
     const int K = 3; //number of dimensions of the generated wavelets
 
@@ -299,7 +299,7 @@ void gen3d(cv::Size * const sampleSize, cv::Point * const position, WaveletMap &
                                         rects[i] = cv::Rect(x[i], y[i], w, h);
                                     }
 
-                                    HaarWavelet * const wavelet = new HaarWavelet(sampleSize, rects, weights);
+                                    HaarWavelet wavelet(rects, weights);
                                     wavelets.insert( wavelet );
                                 }
                             }
@@ -316,7 +316,7 @@ void gen3d(cv::Size * const sampleSize, cv::Point * const position, WaveletMap &
 /**
  * Generates Haar wavelets with 4 rectangles.
  */
-void gen4d(cv::Size * const sampleSize, cv::Point * const position, WaveletMap &wavelets)
+void gen4d(WaveletMap &wavelets)
 {
     const int K = 4; //number of dimensions of the generated wavelets
 
@@ -468,7 +468,7 @@ void gen4d(cv::Size * const sampleSize, cv::Point * const position, WaveletMap &
                                                 rects[i] = cv::Rect(x[i], y[i], w, h);
                                             }
 
-                                            HaarWavelet * const wavelet = new HaarWavelet(sampleSize, rects, weights);
+                                            HaarWavelet wavelet(rects, weights);
                                             wavelets.insert( wavelet );
                                         }
                                     }
@@ -490,32 +490,28 @@ int main(int argc, char * args[])
         return 1;
     }
 
-    cv::Size sampleSize(SAMPLE_SIZE, SAMPLE_SIZE); //size in pixels of the trainning images
-    cv::Point position(0,0); //always like that during SRFS production
-
     WaveletMap wavelets;
     {
-        gen2d(&sampleSize, &position, wavelets);
+        gen2d(wavelets);
         const int d2wavelets = wavelets.size();
         std::cout << "Total 2D wavelets generated: " << d2wavelets << std::endl;
-        gen3d(&sampleSize, &position, wavelets);
+        gen3d(wavelets);
         const int d3wavelets = wavelets.size() - d2wavelets;
         std::cout << "Total 3D wavelets generated: " << d3wavelets << std::endl;
-        gen4d(&sampleSize, &position, wavelets);
+        gen4d(wavelets);
         const int d4wavelets = wavelets.size() - d3wavelets - d2wavelets;
         std::cout << "Total 4D wavelets generated: " << d4wavelets << std::endl;
         std::cout << "Wavelets generated: " << wavelets.size() << std::endl;
     }
 
     //sorts the wavelets
-    std::vector<HaarWavelet * > sorted;
+    std::vector<HaarWavelet> sorted;
     {
         WaveletMap::iterator it = wavelets.begin();
         const WaveletMap::iterator end = wavelets.end();
         for(;it != end; ++it)
         {
-            HaarWavelet * h = *it;
-            sorted.push_back(h);
+            sorted.push_back(*it);
         }
         std::sort(sorted.begin(), sorted.end(), wavelet_comparator());
     }
