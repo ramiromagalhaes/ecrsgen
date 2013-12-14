@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 
-project(generators)
+project(ecrsgen)
 
 # The version number.
 # set (ecrsgen_VERSION_MAJOR 1)
