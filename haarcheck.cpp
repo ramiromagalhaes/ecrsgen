@@ -57,22 +57,22 @@ inline int contains(std::vector<cv::Rect>::const_iterator it, const std::vector<
 
 
 
-inline bool same(HaarWavelet * w1, HaarWavelet * w2)
+inline bool same(HaarWavelet & w1, HaarWavelet & w2)
 {
-    if (w1->dimensions() != w2->dimensions())
+    if (w1.dimensions() != w2.dimensions())
     {
         return false;
     }
 
-    const std::vector<cv::Rect>::const_iterator begin1 = w1->rects_begin();
-    const std::vector<cv::Rect>::const_iterator end1 = w1->rects_end();
-    const std::vector<cv::Rect>::const_iterator end2 = w2->rects_end();
-    std::vector<cv::Rect>::const_iterator it1 = w1->rects_begin();
+    const std::vector<cv::Rect>::const_iterator begin1 = w1.rects_begin();
+    const std::vector<cv::Rect>::const_iterator end1 = w1.rects_end();
+    const std::vector<cv::Rect>::const_iterator end2 = w2.rects_end();
+    std::vector<cv::Rect>::const_iterator it1 = w1.rects_begin();
     for(; it1 != end1; ++it1)
     {
         const int amountOfThisRectangle = contains(begin1, end1, *it1);
 
-        std::vector<cv::Rect>::const_iterator it2 = w2->rects_begin();
+        std::vector<cv::Rect>::const_iterator it2 = w2.rects_begin();
         if ( contains(it2, end2, *it1) != amountOfThisRectangle)
         {
             return false;
@@ -84,14 +84,14 @@ inline bool same(HaarWavelet * w1, HaarWavelet * w2)
 
 
 
-inline bool hasOverlappingRectangles(const HaarWavelet * w1)
+inline bool hasOverlappingRectangles(const HaarWavelet & w1)
 {
-    std::vector<cv::Rect>::const_iterator it1 = w1->rects_begin();
-    const std::vector<cv::Rect>::const_iterator end1 = w1->rects_end();
+    std::vector<cv::Rect>::const_iterator it1 = w1.rects_begin();
+    const std::vector<cv::Rect>::const_iterator end1 = w1.rects_end();
     for(; it1 != end1; ++it1)
     {
-        std::vector<cv::Rect>::const_iterator it2 = w1->rects_begin();
-        const std::vector<cv::Rect>::const_iterator end2 = w1->rects_end();
+        std::vector<cv::Rect>::const_iterator it2 = w1.rects_begin();
+        const std::vector<cv::Rect>::const_iterator end2 = w1.rects_end();
         for(; it2 != end2; ++it2)
         {
             if (it1 != it2 && same(*it1, *it2))
@@ -117,9 +117,9 @@ int main(int argc, char * args[])
 
 
     //load the wavelets
-    std::vector<HaarWavelet * > wavelets;
+    std::vector<HaarWavelet> wavelets;
     std::cout << "Loading Haar wavelets from " << args[1] << std::endl;
-    loadHaarWavelets(&sampleSize, args[1], wavelets);
+    loadHaarWavelets(args[1], wavelets);
     std::cout << "Loaded " << wavelets.size() << " wavelets." << std::endl;
 
     //STATS
@@ -142,16 +142,14 @@ int main(int argc, char * args[])
         }
 
 
-        std::vector<HaarWavelet * >::iterator it = wavelets.begin();
-        const std::vector<HaarWavelet * >::iterator end = wavelets.end();
+        std::vector<HaarWavelet>::iterator it = wavelets.begin();
+        const std::vector<HaarWavelet>::iterator end = wavelets.end();
         for(;it != end; ++it)
         {
-            HaarWavelet * h = *it;
+            dimensions[it->dimensions() - 2]++;
 
-            dimensions[h->dimensions() - 2]++;
-
-            std::vector<cv::Rect>::const_iterator itr = h->rects_begin();
-            const std::vector<cv::Rect>::const_iterator endr = h->rects_end();
+            std::vector<cv::Rect>::const_iterator itr = it->rects_begin();
+            const std::vector<cv::Rect>::const_iterator endr = it->rects_end();
             for(; itr != endr; ++itr)
             {
                 const cv::Rect r = *itr;
@@ -201,14 +199,14 @@ int main(int argc, char * args[])
 
     {//double checks for wavelets with overlapping rectangles
        std::cout << "Checking for overlapped rectangles..." << std::endl;
-       std::vector<HaarWavelet * >::iterator it = wavelets.begin();
-       const std::vector<HaarWavelet * >::iterator end = wavelets.end();
+       std::vector<HaarWavelet>::iterator it = wavelets.begin();
+       const std::vector<HaarWavelet>::iterator end = wavelets.end();
        for(;it != end; ++it)
        {
            if (hasOverlappingRectangles(*it))
            {
                std::cout << "Overlaps ==> ";
-               (*it)->write(std::cout);
+               it->write(std::cout);
                std::cout << std::endl;
            }
        }
@@ -218,19 +216,18 @@ int main(int argc, char * args[])
 
     {//double checks if any rect has x or y at position 20 or more
         std::cout << "Checking for problems with rectangle sizes..." << std::endl;
-        std::vector<HaarWavelet * >::iterator it = wavelets.begin();
-        const std::vector<HaarWavelet * >::iterator end = wavelets.end();
+        std::vector<HaarWavelet>::iterator it = wavelets.begin();
+        const std::vector<HaarWavelet>::iterator end = wavelets.end();
         for(;it != end; ++it)
         {
-            HaarWavelet * h = *it;
-            std::vector<cv::Rect>::const_iterator itr = h->rects_begin();
-            const std::vector<cv::Rect>::const_iterator endr = h->rects_end();
+            std::vector<cv::Rect>::const_iterator itr = it->rects_begin();
+            const std::vector<cv::Rect>::const_iterator endr = it->rects_end();
             for(; itr != endr; ++itr)
             {
                 if (itr->x >= 20 || itr->y >= 20 || itr->x < 0 || itr->y < 0 || itr->x + itr->width > 20 || itr->y + itr->height > 20 || itr->width < 3 || itr->height < 3)
                 {
                     std::cout << "Size problem ==> ";
-                    (*it)->write(std::cout);
+                    it->write(std::cout);
                     std::cout << std::endl;
                     break;
                 }
@@ -241,17 +238,17 @@ int main(int argc, char * args[])
 
     {//double checks for repeated rects in a haar wavelet through brute force
         std::cout << "Checking duplicated rects in each haar wavelet..." << std::endl;
-        std::vector<HaarWavelet * >::iterator it = wavelets.begin();
-        const std::vector<HaarWavelet * >::iterator end = wavelets.end();
+        std::vector<HaarWavelet>::iterator it = wavelets.begin();
+        const std::vector<HaarWavelet>::iterator end = wavelets.end();
         for(;it != end; ++it)
         {
-            std::vector<HaarWavelet * >::iterator it2 = it + 1;
+            std::vector<HaarWavelet>::iterator it2 = it + 1;
             for(;it2 != end; ++it2)
             {
                 if( same(*it, *it2) )
                 {
                     std::cout << "Repeats ==> ";
-                    (*it)->write(std::cout);
+                    it->write(std::cout);
                     std::cout << std::endl;
                 }
             }
