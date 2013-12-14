@@ -38,13 +38,11 @@ endif(WIN32)
 
 
 # Include the haarcommon and link against it
-add_library( haarcommon-release SHARED IMPORTED )
-set_target_properties( haarcommon-release PROPERTIES IMPORTED_LOCATION /home/ramiro/workspace/haarcommon-build/src/libhaarcommon.so )
-add_library( haarcommon-debug SHARED IMPORTED )
-set_target_properties( haarcommon-debug PROPERTIES IMPORTED_LOCATION /home/ramiro/workspace/haarcommon-build-debug/src/libhaarcommon.so )
-
+add_library( haarcommon SHARED IMPORTED )
+set_target_properties( haarcommon PROPERTIES IMPORTED_LOCATION /home/ramiro/workspace/haarcommon-build/src/libhaarcommon.so )
 include_directories( /home/ramiro/workspace/haarcommon/src/ )
 link_directories( /home/ramiro/workspace/haarcommon-build/ )
+
 
 # The Haar wavelet generator
 add_executable( haargen "haargen.cpp" )
