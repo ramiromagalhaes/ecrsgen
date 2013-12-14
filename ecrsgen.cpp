@@ -10,6 +10,7 @@
 
 #include "haarwavelet.h"
 #include "haarwaveletutilities.h"
+#include "haarwaveletevaluators.h"
 
 
 
@@ -20,10 +21,10 @@
 /**
  * Outputs a file name where the SRFS for the given haar wavelet will be stored.
  */
-std::string srfsOutputFileName(HaarWavelet * wavelet)
+std::string srfsOutputFileName(HaarWavelet & wavelet)
 {
     std::stringstream filename;
-    wavelet->write(filename);
+    wavelet.write(filename);
     filename << ".txt";
 
     return filename.str();
@@ -55,8 +56,8 @@ int main(int argc, char* argv[])
 
     //Load a list of Haar wavelets
     std::cout << "Loading wavelets..." << std::endl;
-    std::vector<HaarWavelet*> wavelets;
-    if (!loadHaarWavelets(&sampleSize, waveletsFileName, wavelets))
+    std::vector<HaarWavelet> wavelets;
+    if (!loadHaarWavelets(waveletsFileName, wavelets))
     {
         std::cout << "Unable to load Haar wavelets from file " << waveletsFileName << std::endl;
         return 2;
@@ -117,14 +118,12 @@ int main(int argc, char* argv[])
 
 
     //For each wavelet...
-    std::vector<HaarWavelet*>::iterator waveletIt = wavelets.begin();
-    const std::vector<HaarWavelet*>::iterator waveletsEnd = wavelets.end();
+    std::vector<HaarWavelet>::iterator waveletIt = wavelets.begin();
+    const std::vector<HaarWavelet>::iterator waveletsEnd = wavelets.end();
     for(; waveletIt != waveletsEnd; ++waveletIt)
     {
-        HaarWavelet * wavelet = *waveletIt;
-
         //Open/create an output file
-        std::string outputFileName = srfsOutputFileName(wavelet);
+        std::string outputFileName = srfsOutputFileName(*waveletIt);
         boost::filesystem::path outputPath = outputDir / outputFileName;
         outputFileName = outputPath.string();
         std::ofstream output(outputFileName.c_str(), std::ios::out | std::ios::app /*| std::ios::binary*/);
@@ -136,13 +135,15 @@ int main(int argc, char* argv[])
 
 
 
-        std::vector<float> srfs_vector(wavelet->dimensions());
+        IntensityNormalizedWaveletEvaluator evaluator;
+
+        std::vector<float> srfs_vector(waveletIt->dimensions());
 
         //For each sample image, produce the SRFS
         for( unsigned int i = 0; i < integralSums.size(); ++i )
         {
-            wavelet->setIntegralImages(&integralSums[i], &integralSquares[i]);
-            wavelet->srfs(srfs_vector);
+            evaluator.srfs(*waveletIt, integralSums[i], srfs_vector);
+
 
             //...and write the it to a file.
             std::vector<float>::const_iterator itsrfs = srfs_vector.begin();
