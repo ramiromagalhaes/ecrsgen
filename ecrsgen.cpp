@@ -36,7 +36,8 @@ std::string srfsOutputFileName(HaarWavelet & wavelet)
  * This program reads a Haar wavelets parameters file (produced by haargen), reads the images inside a
  * directory and produce the SRFS for every Haar wavelet found in the wavelets parameter file using every
  * image inside the directory. The program writes the SRFS for each Haar wavelet in an individual file
- * that will be created or appended to in a provided output directory.
+ * that will be created or appended to in a provided output directory. It is assumed that each files
+ * inside the directory are samples of 20 x 20 pixels.
  */
 int main(int argc, char* argv[])
 {
@@ -49,8 +50,6 @@ int main(int argc, char* argv[])
     const std::string waveletsFileName = argv[1]; //load Haar wavelets from here
     const std::string samplesDirName = argv[2]; //load samples from here
     const std::string outputDirName = argv[3]; //write output here
-
-    cv::Size sampleSize(SAMPLE_SIZE, SAMPLE_SIZE); //size in pixels of the trainning images
 
 
 
