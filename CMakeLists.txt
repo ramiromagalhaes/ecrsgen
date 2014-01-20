@@ -43,15 +43,6 @@ set_target_properties( haarcommon PROPERTIES IMPORTED_LOCATION /home/ramiro/work
 include_directories( /home/ramiro/workspace/haarcommon/src/ )
 link_directories( /home/ramiro/workspace/haarcommon-build/ )
 
-
-# The Haar wavelet generator
-add_executable( haargen "haargen.cpp" )
-target_link_libraries( haargen haarcommon ${OpenCV_LIBS} ${Boost_LIBRARIES})
-
-# The Haar wavelet checker
-add_executable( haarcheck "haarcheck.cpp" )
-target_link_libraries( haarcheck haarcommon ${OpenCV_LIBS} )
-
 # The SRFS generator
 add_executable( ecrsgen "ecrsgen.cpp" )
 target_link_libraries( ecrsgen haarcommon ${OpenCV_LIBS} ${Boost_LIBRARIES} )
